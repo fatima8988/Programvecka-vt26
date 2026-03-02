@@ -1,4 +1,7 @@
-
+/* =========================
+   Learnthru Dashboard JS
+   Full script.js (Calendar -> Reminders + Edit/Delete)
+   ========================= */
 
 /* ---------- Demo data ---------- */
 const classes = [
@@ -31,7 +34,12 @@ const lessons = [
   { cls: "A1", teacher: "Helena Lowe", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
 ];
 
-
+// Optional demo reminders (not editable/deletable by default)
+const baseReminders = [
+  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
+  { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
+  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
+];
 
 /* ---------- Tiny helpers ---------- */
 function $(id) {
@@ -159,7 +167,13 @@ function renderLessons(filterText = "") {
   }
 }
 
-
+/* =========================
+   Calendar events storage
+   calendarEvents structure:
+   {
+     "YYYY-MM-DD": [ { id: "...", text: "..." }, ... ]
+   }
+   ========================= */
 let calendarEvents = loadCalendarEvents();
 
 function loadCalendarEvents() {
@@ -521,5 +535,3 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-
-
