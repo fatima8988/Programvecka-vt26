@@ -6,40 +6,34 @@
 /* ---------- Demo data ---------- */
 const classes = [
   {
-    title: "English - UNIT III",
+    title: "Religion - Abrahamitiska religioner",
     files: 10,
     lessons: 10,
-    teacher: "Teacher: Leena Jimenez",
+    teacher: "Teacher: Aleyna Baser",
     gradient: "linear-gradient(135deg, #4f7cff, #7a96ff)"
   },
   {
-    title: "English - UNIT I",
+    title: "Fysik - Kap 9",
     files: 12,
     lessons: 12,
-    teacher: "Teacher: Cole Chandler",
+    teacher: "Teacher: Marco Antonio Rosas Tello",
     gradient: "linear-gradient(135deg, #3d6be6, #52b7ff)"
   },
   {
-    title: "UNIT I",
+    title: "Webbutveckling - slutprojekt",
     files: 16,
     lessons: 16,
-    teacher: "Teacher: Cole Chandler",
+    teacher: "Teacher: Saimon Lindblad",
     gradient: "linear-gradient(135deg, #ff7aa7, #ffb29b)"
   }
 ];
 
 const lessons = [
-  { cls: "A1", teacher: "Bernard Carr", members: 7, starting: "12.07.2022", material: "Download", payment: "Done" },
-  { cls: "A1", teacher: "Henry Poole", members: 8, starting: "17.07.2022", material: "Download", payment: "Pending" },
-  { cls: "A1", teacher: "Helena Lowe", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
+  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Download", payment: "Done" },
+  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pending" },
+  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
 ];
 
-// Optional demo reminders (not editable/deletable by default)
-const baseReminders = [
-  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
-  { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
-  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
-];
 
 /* ---------- Tiny helpers ---------- */
 function $(id) {
