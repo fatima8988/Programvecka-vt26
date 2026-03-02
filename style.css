@@ -466,3 +466,26 @@ a{color:inherit}
   .table-head > div:nth-child(n+3),
   .row > div:nth-child(n+3){ display:none; }
 }
+.calendar-form{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+
+.calendar-form input{
+  flex:1;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px;
+  outline:none;
+}
+
+.calendar-form button{
+  border:none;
+  background:linear-gradient(135deg,#ff6aa3,#ff8bb6);
+  color:white;
+  border-radius:10px;
+  padding:8px 12px;
+  font-weight:700;
+  cursor:pointer;
+}
