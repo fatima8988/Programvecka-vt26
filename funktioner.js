@@ -157,6 +157,8 @@ function renderReminders(filterText = "") {
 }
 
 // ---------- Calendar ----------
+let calendarEvents =
+  JSON.parse(localStorage.getItem("calendarEvents")) || {};
 let viewDate = new Date(); // month being displayed
 let selectedDate = new Date(); // selected day
 
