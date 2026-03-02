@@ -108,12 +108,12 @@
 
     <!-- Right panel -->
     <aside class="right">
-      <div class="profile card">
-        <div class="avatar" title="Stella Walton"></div>
-        <div class="profile-name">*your name</div>
-        <div class="profile-role">Student</div>
-        <button class="btn btn-ghost small">Profile</button>
-      </div>
+    <div class="profile card">
+        <div class="avatar" title="Student"></div>
+        <div class="profile-name" id="profileName">*your name</div>
+        <div class="profile-role" id="profileRole">Student</div>
+        <button class="btn btn-ghost small" id="openProfile" type="button">Profile</button>
+  </div>
 
       <div class="calendar card">
         <div class="cal-head">
@@ -141,6 +141,38 @@
       </div>
     </aside>
   </div>
+
+  <!-- log in modal -->
+   <div id="profileModal" class="auth-modal hidden">
+  <div class="auth-card">
+    <div class="auth-head">
+      <h3>Log in</h3>
+      <button id="closeProfile" class="auth-close" type="button">✕</button>
+    </div>
+
+    <div id="authLoggedOut">
+      <label>Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" />
+
+      <label>Password</label>
+      <input id="authPass" type="password" placeholder="••••••••" />
+
+      <div class="auth-actions">
+        <button id="btnLogin" class="btn small" type="button">Log in</button>
+        <button id="btnSignup" class="btn btn-ghost small" type="button">Sign up</button>
+      </div>
+
+      <p id="authMsg" class="auth-msg"></p>
+    </div>
+
+    <div id="authLoggedIn" class="hidden">
+      <p>Logged in as <b id="authUserEmail"></b></p>
+      <button id="btnLogout" class="btn btn-ghost small" type="button">Log out</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./auth-progress.js"></script>
 
   <script src="funktioner.js"></script>
 </body>
