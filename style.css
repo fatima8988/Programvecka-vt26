@@ -444,6 +444,32 @@ a{color:inherit}
   padding: 10px 12px;
   background: #fbfcff;
 }
+
+.tip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.tip-item {
+  background: #f3f4f6;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.tips h3{
+    margin-left: 10px;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
 .rem-title{ font-weight: 900; font-size: 13px; }
 .rem-sub{ color: var(--muted); font-size: 12px; margin-top: 4px; font-weight: 700; }
 
