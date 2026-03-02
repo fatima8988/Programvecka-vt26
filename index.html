@@ -1,11 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learnthru Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">
+          <span class="dot dot-pink"></span>
+          <span class="dot dot-blue"></span>
+        </div>
+        <div class="brand-name">Learnthru</div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="icon">🏠</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="classroom">
+          <span class="icon">🎓</span><span>Classroom</span>
+        </button>
+        <button class="nav-item" data-page="live">
+          <span class="icon">📡</span><span>Live Lessons</span>
+        </button>
+        <button class="nav-item" data-page="recorded">
+          <span class="icon">🎥</span><span>Recorded Lessons</span>
+        </button>
+        <button class="nav-item" data-page="library">
+          <span class="icon">📚</span><span>Video Library</span>
+        </button>
+      </nav>
+
+      <div class="help-card">
+        <div class="help-badge">
+          <span class="badge-num">247</span>
+        </div>
+        <div class="help-illus">💬</div>
+        <div class="help-title">Need help?</div>
+        <div class="help-sub">Do you have any problem while using Learnthru?</div>
+        <button class="btn btn-ghost">Contact us</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <div class="search">
+          <span class="search-ico">🔎</span>
+          <input id="searchInput" type="text" placeholder="Search" />
+        </div>
+        <div class="date-chip" id="todayChip">—</div>
+      </header>
+
+      <section class="welcome card">
+        <div class="welcome-left">
+          <h2>Welcome back, <span class="accent">Stella Walton!</span></h2>
+          <p>
+            New French speaking classes are available.
+            <br />
+            Study in France for B1 and B2 levels.
+            <a href="#" class="link">Learn more</a>
+          </p>
+          <button class="btn btn-primary">Buy Lesson</button>
+        </div>
+        <div class="welcome-right">
+          <div class="stack-illus" aria-hidden="true">
+            <div class="sheet"></div>
+            <div class="sheet"></div>
+            <div class="sheet"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h3>Classes</h3>
+          <button class="btn btn-ghost small">View All →</button>
+        </div>
+
+        <div class="class-grid" id="classGrid"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h3>Lessons</h3>
+          <button class="btn btn-ghost small">View All →</button>
+        </div>
+
+        <div class="table card">
+          <div class="table-head">
+            <div>Class</div>
+            <div>Teacher Name</div>
+            <div>Members</div>
+            <div>Starting</div>
+            <div>Material</div>
+            <div>Payment</div>
+          </div>
+          <div class="table-body" id="lessonRows"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Right panel -->
+    <aside class="right">
+      <div class="profile card">
+        <div class="avatar" title="Stella Walton"></div>
+        <div class="profile-name">Stella Walton</div>
+        <div class="profile-role">Student</div>
+        <button class="btn btn-ghost small">Profile</button>
+      </div>
+
+      <div class="calendar card">
+        <div class="cal-head">
+          <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+          <div class="cal-title" id="calTitle">—</div>
+          <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+        </div>
+
+        <div class="cal-weekdays">
+          <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="reminders card">
+        <div class="section-head tight">
+          <h3>Reminders</h3>
+          <button class="btn btn-ghost small">View</button>
+        </div>
+        <div class="reminder-list" id="reminderList"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
