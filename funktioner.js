@@ -1,6 +1,6 @@
 /* =========================
    Learnthru Dashboard JS
-   Complete script.js
+   Full script.js (Calendar -> Reminders + Edit/Delete)
    ========================= */
 
 /* ---------- Demo data ---------- */
@@ -34,13 +34,14 @@ const lessons = [
   { cls: "A1", teacher: "Helena Lowe", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
 ];
 
-const reminders = [
+// Optional demo reminders (not editable/deletable by default)
+const baseReminders = [
   { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
   { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
   { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
 ];
 
-/* ---------- Helpers ---------- */
+/* ---------- Tiny helpers ---------- */
 function $(id) {
   return document.getElementById(id);
 }
@@ -54,7 +55,18 @@ function dateKey(d) {
   return d.toISOString().split("T")[0];
 }
 
-/* ---------- Render: top date chip ---------- */
+function uid() {
+  // simple unique id (good enough for localStorage)
+  return "e_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
+}
+
+function getSearchQuery() {
+  return $("searchInput")?.value || "";
+}
+
+/* =========================
+   Top date chip
+   ========================= */
 function renderTodayChip() {
   const el = $("todayChip");
   if (!el) return;
@@ -64,7 +76,9 @@ function renderTodayChip() {
   el.textContent = now.toLocaleDateString(undefined, options);
 }
 
-/* ---------- Render: classes ---------- */
+/* =========================
+   Classes
+   ========================= */
 function renderClasses(filterText = "") {
   const grid = $("classGrid");
   if (!grid) return;
@@ -103,7 +117,9 @@ function renderClasses(filterText = "") {
   }
 }
 
-/* ---------- Render: lessons table ---------- */
+/* =========================
+   Lessons table
+   ========================= */
 function renderLessons(filterText = "") {
   const wrap = $("lessonRows");
   if (!wrap) return;
@@ -151,7 +167,87 @@ function renderLessons(filterText = "") {
   }
 }
 
-/* ---------- Render: reminders ---------- */
+/* =========================
+   Calendar events storage
+   calendarEvents structure:
+   {
+     "YYYY-MM-DD": [ { id: "...", text: "..." }, ... ]
+   }
+   ========================= */
+let calendarEvents = loadCalendarEvents();
+
+function loadCalendarEvents() {
+  const raw = localStorage.getItem("calendarEvents");
+  if (!raw) return {};
+
+  try {
+    const parsed = JSON.parse(raw) || {};
+
+    // MIGRATION: if old format was array of strings, convert to [{id,text}]
+    for (const key of Object.keys(parsed)) {
+      if (Array.isArray(parsed[key])) {
+        const arr = parsed[key];
+
+        // string format
+        if (arr.length > 0 && typeof arr[0] === "string") {
+          parsed[key] = arr.map(str => ({ id: uid(), text: str }));
+        }
+
+        // object format but missing ids
+        if (arr.length > 0 && typeof arr[0] === "object") {
+          parsed[key] = arr.map(obj => ({
+            id: obj.id || uid(),
+            text: obj.text ?? ""
+          }));
+        }
+      } else {
+        parsed[key] = [];
+      }
+    }
+
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+function saveCalendarEvents() {
+  localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
+}
+
+function formatReminderDate(isoKey) {
+  const d = new Date(isoKey + "T00:00:00");
+  return d.toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    weekday: "long"
+  });
+}
+
+function getCalendarReminders() {
+  // Convert calendarEvents -> flat reminders list
+  const out = [];
+  for (const key in calendarEvents) {
+    const events = calendarEvents[key] || [];
+    for (const ev of events) {
+      out.push({
+        title: ev.text,
+        sub: formatReminderDate(key),
+        _dateKey: key,
+        _id: ev.id
+      });
+    }
+  }
+
+  // sort by date (soonest first), then text
+  out.sort((a, b) => a._dateKey.localeCompare(b._dateKey) || a.title.localeCompare(b.title));
+  return out;
+}
+
+/* =========================
+   Reminders (base + calendar)
+   ========================= */
 function renderReminders(filterText = "") {
   const list = $("reminderList");
   if (!list) return;
@@ -159,17 +255,37 @@ function renderReminders(filterText = "") {
   list.innerHTML = "";
 
   const q = filterText.trim().toLowerCase();
-  const filtered = reminders.filter(r =>
+
+  const combined = [
+    ...baseReminders.map(r => ({ ...r, _type: "base" })),
+    ...getCalendarReminders().map(r => ({ ...r, _type: "calendar" }))
+  ];
+
+  const filtered = combined.filter(r =>
     r.title.toLowerCase().includes(q) || r.sub.toLowerCase().includes(q)
   );
 
   filtered.forEach(r => {
     const item = document.createElement("div");
     item.className = "reminder";
+
+    // Buttons only for calendar reminders
+    const actions =
+      r._type === "calendar"
+        ? `
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="btn btn-ghost small" data-action="edit" data-id="${r._id}">✏️ Edit</button>
+            <button class="btn btn-ghost small" data-action="delete" data-id="${r._id}">🗑️ Delete</button>
+          </div>
+        `
+        : "";
+
     item.innerHTML = `
       <div class="rem-title">🔔 ${safeText(r.title)}</div>
       <div class="rem-sub">${safeText(r.sub)}</div>
+      ${actions}
     `;
+
     list.appendChild(item);
   });
 
@@ -181,27 +297,28 @@ function renderReminders(filterText = "") {
     empty.textContent = "No reminders found.";
     list.appendChild(empty);
   }
+
+  // One event listener for all reminder buttons (event delegation)
+  list.querySelectorAll("button[data-action]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const action = btn.getAttribute("data-action");
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+
+      if (action === "edit") editCalendarEvent(id);
+      if (action === "delete") deleteCalendarEvent(id);
+    });
+  });
 }
 
 /* =========================
-   Calendar + Add Events
+   Calendar (month UI)
    ========================= */
-
-// saved events: { "YYYY-MM-DD": ["event1", "event2"] }
-let calendarEvents = JSON.parse(localStorage.getItem("calendarEvents")) || {};
-
 let viewDate = new Date();      // month being displayed
 let selectedDate = new Date();  // selected day
 
-function saveCalendarEvents() {
-  localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
-}
-
 function startOfMonth(d) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-function endOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
 }
 
 // Monday-first index: Mon=0 ... Sun=6
@@ -216,22 +333,9 @@ function sameDay(a, b) {
     && a.getDate() === b.getDate();
 }
 
-function addCalendarEvent() {
-  const input = $("eventInput");
-  if (!input) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  const key = dateKey(selectedDate);
-
-  if (!calendarEvents[key]) calendarEvents[key] = [];
-  calendarEvents[key].push(text);
-
-  saveCalendarEvents();
-  input.value = "";
-
-  renderCalendar();
+function dayHasEvents(d) {
+  const key = dateKey(d);
+  return (calendarEvents[key] && calendarEvents[key].length > 0);
 }
 
 function renderCalendar() {
@@ -246,11 +350,9 @@ function renderCalendar() {
 
   const first = startOfMonth(viewDate);
 
-  // We want a 6-week grid (42 cells)
   const firstIndex = mondayFirstIndex(first.getDay()); // 0-6
   const totalCells = 42;
 
-  // Grid starts: first day - firstIndex
   const gridStart = new Date(first);
   gridStart.setDate(first.getDate() - firstIndex);
 
@@ -266,32 +368,23 @@ function renderCalendar() {
 
     const isCurrentMonth = d.getMonth() === viewDate.getMonth();
     if (!isCurrentMonth) cell.classList.add("muted");
+
     if (sameDay(d, today)) cell.classList.add("today");
     if (sameDay(d, selectedDate)) cell.classList.add("selected");
 
-    // Event dot indicator
-    const key = dateKey(d);
-    if (calendarEvents[key] && calendarEvents[key].length > 0) {
-      cell.style.position = "relative";
-      const dot = document.createElement("div");
-      dot.style.width = "6px";
-      dot.style.height = "6px";
-      dot.style.borderRadius = "50%";
-      dot.style.background = "#ff6aa3";
-      dot.style.position = "absolute";
-      dot.style.bottom = "6px";
-      dot.style.left = "50%";
-      dot.style.transform = "translateX(-50%)";
-      cell.appendChild(dot);
-    }
+    // Color the day if it has events (NO DOT)
+    if (dayHasEvents(d)) cell.classList.add("has-event");
+
+    // If selected day has events, "selected" should visually win (optional)
+    // If you want selected to override has-event, keep CSS ordering accordingly.
 
     cell.addEventListener("click", () => {
       selectedDate = d;
 
-      // If clicked date is not in current month, jump month
       if (d.getMonth() !== viewDate.getMonth()) {
         viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
       }
+
       renderCalendar();
     });
 
@@ -315,7 +408,80 @@ function wireCalendarControls() {
   });
 }
 
-/* ---------- Sidebar active state ---------- */
+/* =========================
+   Add / Edit / Delete calendar events
+   ========================= */
+function addCalendarEvent() {
+  const input = $("eventInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  const key = dateKey(selectedDate);
+  if (!calendarEvents[key]) calendarEvents[key] = [];
+
+  calendarEvents[key].push({ id: uid(), text });
+
+  saveCalendarEvents();
+  input.value = "";
+
+  // refresh UI
+  renderCalendar();
+  renderReminders(getSearchQuery());
+}
+
+function findEventById(eventId) {
+  for (const key in calendarEvents) {
+    const arr = calendarEvents[key] || [];
+    const index = arr.findIndex(ev => ev.id === eventId);
+    if (index !== -1) {
+      return { key, index, event: arr[index] };
+    }
+  }
+  return null;
+}
+
+function editCalendarEvent(eventId) {
+  const found = findEventById(eventId);
+  if (!found) return;
+
+  const current = found.event.text;
+  const nextText = prompt("Edit reminder text:", current);
+
+  if (nextText === null) return; // user cancelled
+  const clean = nextText.trim();
+  if (!clean) return;
+
+  calendarEvents[found.key][found.index].text = clean;
+
+  saveCalendarEvents();
+  renderCalendar();
+  renderReminders(getSearchQuery());
+}
+
+function deleteCalendarEvent(eventId) {
+  const found = findEventById(eventId);
+  if (!found) return;
+
+  const ok = confirm("Delete this reminder?");
+  if (!ok) return;
+
+  calendarEvents[found.key].splice(found.index, 1);
+
+  // If day becomes empty, remove the key (clean storage)
+  if (calendarEvents[found.key].length === 0) {
+    delete calendarEvents[found.key];
+  }
+
+  saveCalendarEvents();
+  renderCalendar();
+  renderReminders(getSearchQuery());
+}
+
+/* =========================
+   Sidebar active state
+   ========================= */
 function wireSidebar() {
   const items = document.querySelectorAll(".nav-item");
   items.forEach(btn => {
@@ -326,7 +492,9 @@ function wireSidebar() {
   });
 }
 
-/* ---------- Search (filters classes + lessons + reminders) ---------- */
+/* =========================
+   Search (filters classes + lessons + reminders)
+   ========================= */
 function wireSearch() {
   const input = $("searchInput");
   if (!input) return;
@@ -339,23 +507,25 @@ function wireSearch() {
   });
 }
 
-/* ---------- Init (safe) ---------- */
+/* =========================
+   Init
+   ========================= */
 function init() {
   renderTodayChip();
   renderClasses();
   renderLessons();
   renderReminders();
 
-  wireCalendarControls();
   wireSidebar();
   wireSearch();
+  wireCalendarControls();
 
   renderCalendar();
 
   const addBtn = $("addEventBtn");
   if (addBtn) addBtn.addEventListener("click", addCalendarEvent);
 
-  // Optional: press Enter to add event
+  // Press Enter to add event
   const eventInput = $("eventInput");
   if (eventInput) {
     eventInput.addEventListener("keydown", (e) => {
@@ -365,3 +535,5 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+
