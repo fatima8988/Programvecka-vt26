@@ -1,4 +1,9 @@
-// ---------- Demo data ----------
+/* =========================
+   Learnthru Dashboard JS
+   Complete script.js
+   ========================= */
+
+/* ---------- Demo data ---------- */
 const classes = [
   {
     title: "English - UNIT III",
@@ -35,17 +40,35 @@ const reminders = [
   { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
 ];
 
-// ---------- Render: top date chip ----------
+/* ---------- Helpers ---------- */
+function $(id) {
+  return document.getElementById(id);
+}
+
+function safeText(s) {
+  return String(s ?? "");
+}
+
+function dateKey(d) {
+  // "YYYY-MM-DD"
+  return d.toISOString().split("T")[0];
+}
+
+/* ---------- Render: top date chip ---------- */
 function renderTodayChip() {
-  const el = document.getElementById("todayChip");
+  const el = $("todayChip");
+  if (!el) return;
+
   const now = new Date();
   const options = { day: "2-digit", month: "long", year: "numeric", weekday: "long" };
   el.textContent = now.toLocaleDateString(undefined, options);
 }
 
-// ---------- Render: classes ----------
+/* ---------- Render: classes ---------- */
 function renderClasses(filterText = "") {
-  const grid = document.getElementById("classGrid");
+  const grid = $("classGrid");
+  if (!grid) return;
+
   grid.innerHTML = "";
 
   const q = filterText.trim().toLowerCase();
@@ -59,12 +82,12 @@ function renderClasses(filterText = "") {
     card.style.background = c.gradient;
 
     card.innerHTML = `
-      <div class="title">${c.title}</div>
+      <div class="title">${safeText(c.title)}</div>
       <div class="class-meta">
         <div class="meta-item">📄 <span>${c.files} Files</span></div>
         <div class="meta-item">🎬 <span>${c.lessons} Lessons</span></div>
       </div>
-      <div class="teacher">${c.teacher}</div>
+      <div class="teacher">${safeText(c.teacher)}</div>
     `;
 
     grid.appendChild(card);
@@ -80,9 +103,11 @@ function renderClasses(filterText = "") {
   }
 }
 
-// ---------- Render: lessons table ----------
+/* ---------- Render: lessons table ---------- */
 function renderLessons(filterText = "") {
-  const wrap = document.getElementById("lessonRows");
+  const wrap = $("lessonRows");
+  if (!wrap) return;
+
   wrap.innerHTML = "";
 
   const q = filterText.trim().toLowerCase();
@@ -92,15 +117,15 @@ function renderLessons(filterText = "") {
     l.payment.toLowerCase().includes(q)
   );
 
-  filtered.forEach((l, idx) => {
+  filtered.forEach(l => {
     const row = document.createElement("div");
     row.className = "row";
 
     const payDotClass = l.payment.toLowerCase() === "done" ? "done" : "pending";
 
     row.innerHTML = `
-      <div><span class="tag">${l.cls}</span></div>
-      <div style="font-weight:900;">${l.teacher}</div>
+      <div><span class="tag">${safeText(l.cls)}</span></div>
+      <div style="font-weight:900;">${safeText(l.teacher)}</div>
       <div class="members">
         <div class="avatars">
           <div class="mini"></div>
@@ -109,9 +134,9 @@ function renderLessons(filterText = "") {
         </div>
         <div style="color:#657195;font-weight:800;font-size:12px;">+${Math.max(0, l.members - 3)}</div>
       </div>
-      <div style="color:#657195;font-weight:800;">${l.starting}</div>
-      <div><a href="#" class="link" onclick="return false;">${l.material}</a></div>
-      <div class="pill"><span class="dot2 ${payDotClass}"></span>${l.payment}</div>
+      <div style="color:#657195;font-weight:800;">${safeText(l.starting)}</div>
+      <div><a href="#" class="link" onclick="return false;">${safeText(l.material)}</a></div>
+      <div class="pill"><span class="dot2 ${payDotClass}"></span>${safeText(l.payment)}</div>
     `;
 
     wrap.appendChild(row);
@@ -126,9 +151,11 @@ function renderLessons(filterText = "") {
   }
 }
 
-// ---------- Render: reminders ----------
+/* ---------- Render: reminders ---------- */
 function renderReminders(filterText = "") {
-  const list = document.getElementById("reminderList");
+  const list = $("reminderList");
+  if (!list) return;
+
   list.innerHTML = "";
 
   const q = filterText.trim().toLowerCase();
@@ -140,8 +167,8 @@ function renderReminders(filterText = "") {
     const item = document.createElement("div");
     item.className = "reminder";
     item.innerHTML = `
-      <div class="rem-title">🔔 ${r.title}</div>
-      <div class="rem-sub">${r.sub}</div>
+      <div class="rem-title">🔔 ${safeText(r.title)}</div>
+      <div class="rem-sub">${safeText(r.sub)}</div>
     `;
     list.appendChild(item);
   });
@@ -156,11 +183,19 @@ function renderReminders(filterText = "") {
   }
 }
 
-// ---------- Calendar ----------
-let calendarEvents =
-  JSON.parse(localStorage.getItem("calendarEvents")) || {};
-let viewDate = new Date(); // month being displayed
-let selectedDate = new Date(); // selected day
+/* =========================
+   Calendar + Add Events
+   ========================= */
+
+// saved events: { "YYYY-MM-DD": ["event1", "event2"] }
+let calendarEvents = JSON.parse(localStorage.getItem("calendarEvents")) || {};
+
+let viewDate = new Date();      // month being displayed
+let selectedDate = new Date();  // selected day
+
+function saveCalendarEvents() {
+  localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
+}
 
 function startOfMonth(d) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -181,22 +216,41 @@ function sameDay(a, b) {
     && a.getDate() === b.getDate();
 }
 
+function addCalendarEvent() {
+  const input = $("eventInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  const key = dateKey(selectedDate);
+
+  if (!calendarEvents[key]) calendarEvents[key] = [];
+  calendarEvents[key].push(text);
+
+  saveCalendarEvents();
+  input.value = "";
+
+  renderCalendar();
+}
+
 function renderCalendar() {
-  const title = document.getElementById("calTitle");
-  const grid = document.getElementById("calGrid");
+  const title = $("calTitle");
+  const grid = $("calGrid");
+  if (!title || !grid) return;
+
   grid.innerHTML = "";
 
   const monthName = viewDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   title.textContent = monthName;
 
   const first = startOfMonth(viewDate);
-  const last = endOfMonth(viewDate);
 
-  // We want to fill a 6-week grid (42 cells) like most dashboards
+  // We want a 6-week grid (42 cells)
   const firstIndex = mondayFirstIndex(first.getDay()); // 0-6
   const totalCells = 42;
 
-  // Start date in grid = first day - firstIndex
+  // Grid starts: first day - firstIndex
   const gridStart = new Date(first);
   gridStart.setDate(first.getDate() - firstIndex);
 
@@ -215,9 +269,26 @@ function renderCalendar() {
     if (sameDay(d, today)) cell.classList.add("today");
     if (sameDay(d, selectedDate)) cell.classList.add("selected");
 
+    // Event dot indicator
+    const key = dateKey(d);
+    if (calendarEvents[key] && calendarEvents[key].length > 0) {
+      cell.style.position = "relative";
+      const dot = document.createElement("div");
+      dot.style.width = "6px";
+      dot.style.height = "6px";
+      dot.style.borderRadius = "50%";
+      dot.style.background = "#ff6aa3";
+      dot.style.position = "absolute";
+      dot.style.bottom = "6px";
+      dot.style.left = "50%";
+      dot.style.transform = "translateX(-50%)";
+      cell.appendChild(dot);
+    }
+
     cell.addEventListener("click", () => {
       selectedDate = d;
-      // If clicked day is from another month, navigate to it
+
+      // If clicked date is not in current month, jump month
       if (d.getMonth() !== viewDate.getMonth()) {
         viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
       }
@@ -229,17 +300,22 @@ function renderCalendar() {
 }
 
 function wireCalendarControls() {
-  document.getElementById("prevMonth").addEventListener("click", () => {
+  const prev = $("prevMonth");
+  const next = $("nextMonth");
+  if (!prev || !next) return;
+
+  prev.addEventListener("click", () => {
     viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
     renderCalendar();
   });
-  document.getElementById("nextMonth").addEventListener("click", () => {
+
+  next.addEventListener("click", () => {
     viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
     renderCalendar();
   });
 }
 
-// ---------- Sidebar active state ----------
+/* ---------- Sidebar active state ---------- */
 function wireSidebar() {
   const items = document.querySelectorAll(".nav-item");
   items.forEach(btn => {
@@ -250,9 +326,11 @@ function wireSidebar() {
   });
 }
 
-// ---------- Search (filters classes + lessons + reminders) ----------
+/* ---------- Search (filters classes + lessons + reminders) ---------- */
 function wireSearch() {
-  const input = document.getElementById("searchInput");
+  const input = $("searchInput");
+  if (!input) return;
+
   input.addEventListener("input", () => {
     const q = input.value;
     renderClasses(q);
@@ -261,12 +339,29 @@ function wireSearch() {
   });
 }
 
-// ---------- Init ----------
-renderTodayChip();
-renderClasses();
-renderLessons();
-renderReminders();
-wireCalendarControls();
-renderCalendar();
-wireSidebar();
-wireSearch();
+/* ---------- Init (safe) ---------- */
+function init() {
+  renderTodayChip();
+  renderClasses();
+  renderLessons();
+  renderReminders();
+
+  wireCalendarControls();
+  wireSidebar();
+  wireSearch();
+
+  renderCalendar();
+
+  const addBtn = $("addEventBtn");
+  if (addBtn) addBtn.addEventListener("click", addCalendarEvent);
+
+  // Optional: press Enter to add event
+  const eventInput = $("eventInput");
+  if (eventInput) {
+    eventInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addCalendarEvent();
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", init);
