@@ -33,6 +33,12 @@ const lessons = [
   { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pending" },
   { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
 ];
+const baseReminders = [
+  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
+  { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
+  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
+];
+
 
 
 /* ---------- Tiny helpers ---------- */
