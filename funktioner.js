@@ -1,7 +1,4 @@
-/* =========================
-   Learnthru Dashboard JS
-   Full script.js (Calendar -> Reminders + Edit/Delete)
-   ========================= */
+
 
 /* ---------- Demo data ---------- */
 const classes = [
@@ -162,13 +159,7 @@ function renderLessons(filterText = "") {
   }
 }
 
-/* =========================
-   Calendar events storage
-   calendarEvents structure:
-   {
-     "YYYY-MM-DD": [ { id: "...", text: "..." }, ... ]
-   }
-   ========================= */
+
 let calendarEvents = loadCalendarEvents();
 
 function loadCalendarEvents() {
