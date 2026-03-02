@@ -489,3 +489,8 @@ a{color:inherit}
   font-weight:700;
   cursor:pointer;
 }
+.day.has-event {
+  background: linear-gradient(135deg, #ff6aa3, #ff8bb6);
+  color: white;
+  border-color: transparent;
+}
