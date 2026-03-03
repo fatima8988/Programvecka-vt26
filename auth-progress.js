@@ -233,9 +233,10 @@ onAuthStateChanged(auth, async (user) => {
       localStorage.setItem("calendarEvents", JSON.stringify(cloudEvents));
       window.dispatchEvent(new Event("calendarEventsLoaded"));
     } else {
-      // first time: upload local copy
-      await window.StudyData.syncCalendarNow();
-    }
+  // first time: upload local copy
+  await window.StudyData.syncCalendarNow();
+  window.dispatchEvent(new Event("calendarEventsLoaded"));
+}
   } else {
     authLoggedIn?.classList.add("hidden");
     authLoggedOut?.classList.remove("hidden");
