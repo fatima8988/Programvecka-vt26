@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plugg stuga</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- optional: remove favicon 404 -->
+  <link rel="icon" href="data:,">
 </head>
 <body>
   <div class="app">
@@ -19,20 +21,22 @@
       </div>
 
       <nav class="nav">
-        <button class="nav-item active" data-page="dashboard">
+        <button class="nav-item active" data-page="dashboard" type="button">
           <span class="icon">🏠</span><span>Dashboard</span>
         </button>
-        <button class="nav-item" data-page="classroom">
-         
-          <span class="icon">🎓</span><a href= "flashcards.html">Quiz</a></span>
-        </button>
-        <button class="nav-item" data-page="live">
+
+        <!-- FIXED: don’t put <a> inside a button -->
+        <a class="nav-item" href="flashcards.html">
+          <span class="icon">🎓</span><span>Quiz</span>
+        </a>
+
+        <button class="nav-item" data-page="live" type="button">
           <span class="icon">📡</span><span>Live Lessons</span>
         </button>
-        <button class="nav-item" data-page="recorded">
+        <button class="nav-item" data-page="recorded" type="button">
           <span class="icon">🎥</span><span>Recorded Lessons</span>
         </button>
-        <button class="nav-item" data-page="library">
+        <button class="nav-item" data-page="library" type="button">
           <span class="icon">📚</span><span>Video Library</span>
         </button>
       </nav>
@@ -44,7 +48,7 @@
         <div class="help-illus">💬</div>
         <div class="help-title">Need help?</div>
         <div class="help-sub">beep beep beeeeeeeeeeeeeeeeeep?</div>
-        <button class="btn btn-ghost">Contact us</button>
+        <button class="btn btn-ghost" type="button">Contact us</button>
       </div>
     </aside>
 
@@ -60,14 +64,14 @@
 
       <section class="welcome card">
         <div class="welcome-left">
-          <h2>Welcome back, <span class="accent">*YOUR NAME</span></h2>
+          <h2>Welcome back, <span class="accent" id="welcomeName">*YOUR NAME</span></h2>
           <p>
             blah blah blah
             <br />
-            blah blah blah 
+            blah blah blah
             <a href="#" class="link">Learn more</a>
           </p>
-          <button class="btn btn-primary">yuhhhh</button>
+          <button class="btn btn-primary" type="button">yuhhhh</button>
         </div>
         <div class="welcome-right">
           <div class="stack-illus" aria-hidden="true">
@@ -81,16 +85,15 @@
       <section class="section">
         <div class="section-head">
           <h3>Classes</h3>
-          <button class="btn btn-ghost small">View All →</button>
+          <button class="btn btn-ghost small" type="button">View All →</button>
         </div>
-
         <div class="class-grid" id="classGrid"></div>
       </section>
 
       <section class="section">
         <div class="section-head">
           <h3>Lessons</h3>
-          <button class="btn btn-ghost small">View All →</button>
+          <button class="btn btn-ghost small" type="button">View All →</button>
         </div>
 
         <div class="table card">
@@ -109,23 +112,24 @@
 
     <!-- Right panel -->
     <aside class="right">
-    <div class="profile card">
+      <div class="profile card">
         <div class="avatar" title="Student"></div>
         <div class="profile-name" id="profileName">*your name</div>
         <div class="profile-role" id="profileRole">Student</div>
         <button class="btn btn-ghost small" id="openProfile" type="button">Profile</button>
-  </div>
+      </div>
 
       <div class="calendar card">
         <div class="cal-head">
-          <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+          <button class="icon-btn" id="prevMonth" aria-label="Previous month" type="button">‹</button>
           <div class="cal-title" id="calTitle">—</div>
-          <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+          <button class="icon-btn" id="nextMonth" aria-label="Next month" type="button">›</button>
         </div>
+
         <div class="calendar-form">
-  <input id="eventInput" type="text" placeholder="Add reminder..." />
-  <button id="addEventBtn">Add</button>
-  </div>
+          <input id="eventInput" type="text" placeholder="Add reminder..." />
+          <button id="addEventBtn" type="button">Add</button>
+        </div>
 
         <div class="cal-weekdays">
           <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
@@ -136,56 +140,57 @@
       <div class="reminders card">
         <div class="section-head tight">
           <h3>Reminders</h3>
-          <button class="btn btn-ghost small">View</button>
+          <button class="btn btn-ghost small" type="button">View</button>
         </div>
         <div class="reminder-list" id="reminderList"></div>
       </div>
-      <div class="tips card">
-  <div class="section-head tight">
-    <h3>Tips on how to study</h3>
-  </div>
 
-  <div class="tip-list">
-    <div class="tip-item">💡Active recall</div>
-    <div class="tip-item">💡Spaced repetition</div>
-    <div class="tip-item">💡Feynman technique</div>
-    <div class="tip-item">💡Interleaving</div>
-  </div>
-</div>
+      <div class="tips card">
+        <div class="section-head tight">
+          <h3>Tips on how to study</h3>
+        </div>
+        <div class="tip-list">
+          <div class="tip-item">💡Active recall</div>
+          <div class="tip-item">💡Spaced repetition</div>
+          <div class="tip-item">💡Feynman technique</div>
+          <div class="tip-item">💡Interleaving</div>
+        </div>
+      </div>
     </aside>
   </div>
 
-  <!-- log in modal -->
-   <div id="profileModal" class="auth-modal hidden">
-  <div class="auth-card">
-    <div class="auth-head">
-      <h3>Log in</h3>
-      <button id="closeProfile" class="auth-close" type="button">✕</button>
-    </div>
-
-    <div id="authLoggedOut">
-      <label>Email</label>
-      <input id="authEmail" type="email" placeholder="you@example.com" />
-
-      <label>Password</label>
-      <input id="authPass" type="password" placeholder="••••••••" />
-
-      <div class="auth-actions">
-        <button id="btnLogin" class="btn small" type="button">Log in</button>
-        <button id="btnSignup" class="btn btn-ghost small" type="button">Sign up</button>
+  <!-- Log in modal -->
+  <div id="profileModal" class="auth-modal hidden">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h3>Log in</h3>
+        <button id="closeProfile" class="auth-close" type="button">✕</button>
       </div>
 
-      <p id="authMsg" class="auth-msg"></p>
-    </div>
+      <div id="authLoggedOut">
+        <label>Email</label>
+        <input id="authEmail" type="email" placeholder="you@example.com" />
 
-    <div id="authLoggedIn" class="hidden">
-      <p>Logged in as <b id="authUserEmail"></b></p>
-      <button id="btnLogout" class="btn btn-ghost small" type="button">Log out</button>
+        <label>Password</label>
+        <input id="authPass" type="password" placeholder="••••••••" />
+
+        <div class="auth-actions">
+          <button id="btnLogin" class="btn small" type="button">Log in</button>
+          <button id="btnSignup" class="btn btn-ghost small" type="button">Sign up</button>
+        </div>
+
+        <p id="authMsg" class="auth-msg"></p>
+      </div>
+
+      <div id="authLoggedIn" class="hidden">
+        <p>Logged in as <b id="authUserEmail"></b></p>
+        <button id="btnLogout" class="btn btn-ghost small" type="button">Log out</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- Scripts -->
+  <script src="funktioner.js"></script>
   <script type="module" src="./auth-progress.js"></script>
-    <script src="funktioner.js"></script>
 </body>
 </html>
