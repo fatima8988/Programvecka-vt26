@@ -1,6 +1,5 @@
 // auth-progress.js (ES MODULE)
 
-// --- Imports (ONLY ONCE) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
@@ -18,22 +17,66 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// --- Firebase config ---
- const firebaseConfig = {
-    apiKey: "AIzaSyAM12PNCQr0igelGS3iIkxIjNbmY94gcAg",
-    authDomain: "projektvecka.firebaseapp.com",
-    projectId: "projektvecka",
-    storageBucket: "projektvecka.firebasestorage.app",
-    messagingSenderId: "86535425017",
-    appId: "1:86535425017:web:69c21f947c328708574b28",
-    measurementId: "G-HC2ES20G2P"
-  };
+/* ---------------------------
+   1) Firebase config (COPY FRESH from Firebase Console → CDN)
+---------------------------- */
+const firebaseConfig = {
+  apiKey: "PASTE_FROM_FIREBASE",
+  authDomain: "PASTE_FROM_FIREBASE",
+  projectId: "PASTE_FROM_FIREBASE",
+  storageBucket: "PASTE_FROM_FIREBASE",
+  messagingSenderId: "PASTE_FROM_FIREBASE",
+  appId: "PASTE_FROM_FIREBASE"
+  // measurementId optional
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- UI elements ---
+/* ---------------------------
+   2) Firestore refs
+---------------------------- */
+const progressDocRef = (uid) => doc(db, "users", uid, "progress", "main");
+const dataDocRef = (uid) => doc(db, "users", uid, "data", "main");
+
+/* ---------------------------
+   3) Cloud save/load for calendarEvents (your reminders)
+---------------------------- */
+async function loadCalendarEventsFromCloud(uid) {
+  const snap = await getDoc(dataDocRef(uid));
+  if (!snap.exists()) return null;
+  return snap.data()?.calendarEvents ?? null;
+}
+
+async function saveCalendarEventsToCloud(uid, calendarEvents) {
+  await setDoc(
+    dataDocRef(uid),
+    { calendarEvents, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+/* Expose a simple sync for funktioner.js */
+window.StudyData = {
+  async syncCalendarNow() {
+    const user = window.StudyProgress?.currentUser;
+    if (!user) return;
+
+    const raw = localStorage.getItem("calendarEvents");
+    let parsed;
+    try {
+      parsed = raw ? JSON.parse(raw) : {};
+    } catch {
+      parsed = {};
+    }
+    await saveCalendarEventsToCloud(user.uid, parsed);
+  }
+};
+
+/* ---------------------------
+   4) UI elements
+---------------------------- */
 const modal = document.getElementById("profileModal");
 const openBtn = document.getElementById("openProfile");
 const closeBtn = document.getElementById("closeProfile");
@@ -53,9 +96,11 @@ const userEmailEl = document.getElementById("authUserEmail");
 
 const profileName = document.getElementById("profileName");
 const profileRole = document.getElementById("profileRole");
-const welcomeName = document.getElementById("welcomeName"); // add id in HTML if you want
+const welcomeName = document.getElementById("welcomeName");
 
-// --- Modal open/close ---
+/* ---------------------------
+   5) Modal open/close
+---------------------------- */
 function openModal() {
   modal?.classList.remove("hidden");
   if (msgEl) msgEl.textContent = "";
@@ -71,7 +116,9 @@ modal?.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
 
-// --- Auth buttons ---
+/* ---------------------------
+   6) Auth buttons
+---------------------------- */
 btnSignup?.addEventListener("click", async () => {
   if (!emailEl || !passEl) return;
   if (msgEl) msgEl.textContent = "";
@@ -79,7 +126,7 @@ btnSignup?.addEventListener("click", async () => {
     await createUserWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
     if (msgEl) msgEl.textContent = "Account created ✅";
   } catch (e) {
-    if (msgEl) msgEl.textContent = e?.message || "Signup failed";
+    if (msgEl) msgEl.textContent = e?.code ? `${e.code}` : (e?.message || "Signup failed");
   }
 });
 
@@ -90,7 +137,7 @@ btnLogin?.addEventListener("click", async () => {
     await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
     if (msgEl) msgEl.textContent = "Logged in ✅";
   } catch (e) {
-    if (msgEl) msgEl.textContent = e?.message || "Login failed";
+    if (msgEl) msgEl.textContent = e?.code ? `${e.code}` : (e?.message || "Login failed");
   }
 });
 
@@ -98,11 +145,9 @@ btnLogout?.addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// --- Firestore progress helpers ---
-function progressDocRef(uid) {
-  return doc(db, "users", uid, "progress", "main");
-}
-
+/* ---------------------------
+   7) Progress helpers (quizzes)
+---------------------------- */
 async function loadProgress(uid) {
   const snap = await getDoc(progressDocRef(uid));
   return snap.exists() ? snap.data() : { quizzes: {} };
@@ -116,7 +161,6 @@ async function saveProgress(uid, progress) {
   );
 }
 
-// --- Public progress API ---
 window.StudyProgress = {
   currentUser: null,
   progress: { quizzes: {} },
@@ -152,7 +196,6 @@ window.StudyProgress = {
   }
 };
 
-// --- Optional UI marking ---
 function updateQuizCardsUI(progress) {
   const quizzes = progress?.quizzes || {};
   document.querySelectorAll("[data-quiz-id]").forEach((el) => {
@@ -164,7 +207,9 @@ function updateQuizCardsUI(progress) {
   });
 }
 
-// --- Auth state ---
+/* ---------------------------
+   8) Auth state (load progress + calendarEvents)
+---------------------------- */
 onAuthStateChanged(auth, async (user) => {
   window.StudyProgress.currentUser = user;
 
@@ -178,9 +223,20 @@ onAuthStateChanged(auth, async (user) => {
     profileRole && (profileRole.textContent = "Student (Logged in)");
     welcomeName && (welcomeName.textContent = niceName);
 
-    const data = await loadProgress(user.uid);
-    window.StudyProgress.progress = data;
-    updateQuizCardsUI(data);
+    // 1) Load progress
+    const p = await loadProgress(user.uid);
+    window.StudyProgress.progress = p;
+    updateQuizCardsUI(p);
+
+    // 2) Load calendarEvents from cloud → localStorage → tell funktioner.js to refresh
+    const cloudEvents = await loadCalendarEventsFromCloud(user.uid);
+    if (cloudEvents) {
+      localStorage.setItem("calendarEvents", JSON.stringify(cloudEvents));
+      window.dispatchEvent(new Event("calendarEventsLoaded"));
+    } else {
+      // first time: upload local copy
+      await window.StudyData.syncCalendarNow();
+    }
   } else {
     authLoggedIn?.classList.add("hidden");
     authLoggedOut?.classList.remove("hidden");

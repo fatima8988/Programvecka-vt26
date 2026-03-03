@@ -176,6 +176,11 @@ function renderLessons(filterText = "") {
    ========================= */
 let calendarEvents = loadCalendarEvents();
 
+window.addEventListener("calendarEventsLoaded", () => {
+  calendarEvents = loadCalendarEvents();
+  renderCalendar();
+  renderReminders(getSearchQuery());
+});
 function loadCalendarEvents() {
   const raw = localStorage.getItem("calendarEvents");
   if (!raw) return {};
@@ -213,6 +218,11 @@ function loadCalendarEvents() {
 
 function saveCalendarEvents() {
   localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
+
+  // If logged in, also save to Firestore
+  if (window.StudyData?.syncCalendarNow) {
+    window.StudyData.syncCalendarNow();
+  }
 }
 
 function formatReminderDate(isoKey) {
