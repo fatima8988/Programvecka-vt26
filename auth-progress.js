@@ -19,15 +19,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 // --- Firebase config ---
-const firebaseConfig = {
-  apiKey: "AIzaSyAM12PNCQr0ige1GS3iIkxIjNbmY94gcAg",
-  authDomain: "projektvecka.firebaseapp.com",
-  projectId: "projektvecka",
-  storageBucket: "projektvecka.firebasestorage.app",
-  messagingSenderId: "86535425017",
-  appId: "1:86535425017:web:69c21f947c328708574b28",
-  measurementId: "G-HC2ES20GZP"
-};
+ const firebaseConfig = {
+    apiKey: "AIzaSyAM12PNCQr0igelGS3iIkxIjNbmY94gcAg",
+    authDomain: "projektvecka.firebaseapp.com",
+    projectId: "projektvecka",
+    storageBucket: "projektvecka.firebasestorage.app",
+    messagingSenderId: "86535425017",
+    appId: "1:86535425017:web:69c21f947c328708574b28",
+    measurementId: "G-HC2ES20G2P"
+  };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
