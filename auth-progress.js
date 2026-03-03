@@ -20,7 +20,37 @@ import {
    1) Firebase config
    Firebase Console → Project settings → Your apps → Web app
 ---------------------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAM12PNCQr0ige1GS3iIkxIjNbmY94gcAg",
+  authDomain: "projektvecka.firebaseapp.com",
+  projectId: "projektvecka",
+  storageBucket: "projektvecka.firebasestorage.app",
+  messagingSenderId: "86535425017",
+  appId: "1:86535425017:web:69c21f947c328708574b28",
+  measurementId: "G-HC2ES20GZP"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 /* ---------------------------
    2) Modal / UI wiring
 ---------------------------- */
