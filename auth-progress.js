@@ -28,7 +28,7 @@ const firebaseConfig = {
   messagingSenderId: "86535425017",
   appId: "1:86535425017:web:69c21f947c328708574b28"
 };
-
+console.log("RUNNING API KEY:", firebaseConfig.apiKey);
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
