@@ -15,6 +15,10 @@
   --chip:#f6f7fb;
 }
 
+a {
+  text-decoration: none;
+}
+
 *{box-sizing:border-box}
 body{
   margin:0;
