@@ -1,6 +1,6 @@
 /* =========================
-   Learnthru Dashboard JS
-   Full script.js (Calendar -> Reminders + Edit/Delete)
+   Dashboard JS (Calendar -> Reminders + Edit/Delete)
+   LocalStorage only (no Firebase saving)
    ========================= */
 
 /* ---------- Demo data ---------- */
@@ -33,36 +33,19 @@ const lessons = [
   { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pending" },
   { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
 ];
+
 const baseReminders = [
   { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
   { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
   { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
 ];
 
-
-
-/* ---------- Tiny helpers ---------- */
-function $(id) {
-  return document.getElementById(id);
-}
-
-function safeText(s) {
-  return String(s ?? "");
-}
-
-function dateKey(d) {
-  // "YYYY-MM-DD"
-  return d.toISOString().split("T")[0];
-}
-
-function uid() {
-  // simple unique id (good enough for localStorage)
-  return "e_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
-}
-
-function getSearchQuery() {
-  return $("searchInput")?.value || "";
-}
+/* ---------- Helpers ---------- */
+function $(id) { return document.getElementById(id); }
+function safeText(s) { return String(s ?? ""); }
+function dateKey(d) { return d.toISOString().split("T")[0]; }
+function uid() { return "e_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9); }
+function getSearchQuery() { return $("searchInput")?.value || ""; }
 
 /* =========================
    Top date chip
@@ -70,10 +53,8 @@ function getSearchQuery() {
 function renderTodayChip() {
   const el = $("todayChip");
   if (!el) return;
-
   const now = new Date();
-  const options = { day: "2-digit", month: "long", year: "numeric", weekday: "long" };
-  el.textContent = now.toLocaleDateString(undefined, options);
+  el.textContent = now.toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric", weekday: "long" });
 }
 
 /* =========================
@@ -84,8 +65,8 @@ function renderClasses(filterText = "") {
   if (!grid) return;
 
   grid.innerHTML = "";
-
   const q = filterText.trim().toLowerCase();
+
   const filtered = classes.filter(c =>
     c.title.toLowerCase().includes(q) || c.teacher.toLowerCase().includes(q)
   );
@@ -94,7 +75,6 @@ function renderClasses(filterText = "") {
     const card = document.createElement("div");
     card.className = "class-card";
     card.style.background = c.gradient;
-
     card.innerHTML = `
       <div class="title">${safeText(c.title)}</div>
       <div class="class-meta">
@@ -103,7 +83,6 @@ function renderClasses(filterText = "") {
       </div>
       <div class="teacher">${safeText(c.teacher)}</div>
     `;
-
     grid.appendChild(card);
   });
 
@@ -125,8 +104,8 @@ function renderLessons(filterText = "") {
   if (!wrap) return;
 
   wrap.innerHTML = "";
-
   const q = filterText.trim().toLowerCase();
+
   const filtered = lessons.filter(l =>
     l.cls.toLowerCase().includes(q) ||
     l.teacher.toLowerCase().includes(q) ||
@@ -136,7 +115,6 @@ function renderLessons(filterText = "") {
   filtered.forEach(l => {
     const row = document.createElement("div");
     row.className = "row";
-
     const payDotClass = l.payment.toLowerCase() === "done" ? "done" : "pending";
 
     row.innerHTML = `
@@ -154,7 +132,6 @@ function renderLessons(filterText = "") {
       <div><a href="#" class="link" onclick="return false;">${safeText(l.material)}</a></div>
       <div class="pill"><span class="dot2 ${payDotClass}"></span>${safeText(l.payment)}</div>
     `;
-
     wrap.appendChild(row);
   });
 
@@ -168,19 +145,17 @@ function renderLessons(filterText = "") {
 }
 
 /* =========================
-   Calendar events storage
-   calendarEvents structure:
-   {
-     "YYYY-MM-DD": [ { id: "...", text: "..." }, ... ]
-   }
+   Calendar events (localStorage)
    ========================= */
 let calendarEvents = loadCalendarEvents();
 
 window.addEventListener("calendarEventsLoaded", () => {
+  // safe: if something triggers this, we reload from localStorage
   calendarEvents = loadCalendarEvents();
   renderCalendar();
   renderReminders(getSearchQuery());
 });
+
 function loadCalendarEvents() {
   const raw = localStorage.getItem("calendarEvents");
   if (!raw) return {};
@@ -188,26 +163,15 @@ function loadCalendarEvents() {
   try {
     const parsed = JSON.parse(raw) || {};
 
-    // MIGRATION: if old format was array of strings, convert to [{id,text}]
+    // migration: strings -> {id,text}
     for (const key of Object.keys(parsed)) {
-      if (Array.isArray(parsed[key])) {
-        const arr = parsed[key];
+      if (!Array.isArray(parsed[key])) parsed[key] = [];
 
-        // string format
-        if (arr.length > 0 && typeof arr[0] === "string") {
-          parsed[key] = arr.map(str => ({ id: uid(), text: str }));
-        }
-
-        // object format but missing ids
-        if (arr.length > 0 && typeof arr[0] === "object") {
-          parsed[key] = arr.map(obj => ({
-            id: obj.id || uid(),
-            text: obj.text ?? ""
-          }));
-        }
-      } else {
-        parsed[key] = [];
-      }
+      parsed[key] = parsed[key].map((x) => {
+        if (typeof x === "string") return { id: uid(), text: x };
+        if (typeof x === "object" && x) return { id: x.id || uid(), text: x.text ?? "" };
+        return { id: uid(), text: "" };
+      });
     }
 
     return parsed;
@@ -218,52 +182,32 @@ function loadCalendarEvents() {
 
 function saveCalendarEvents() {
   localStorage.setItem("calendarEvents", JSON.stringify(calendarEvents));
-
-  // If logged in, also save to Firestore
-  if (window.StudyData?.syncCalendarNow) {
-    window.StudyData.syncCalendarNow();
-  }
 }
 
 function formatReminderDate(isoKey) {
   const d = new Date(isoKey + "T00:00:00");
-  return d.toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    weekday: "long"
-  });
+  return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric", weekday: "long" });
 }
 
 function getCalendarReminders() {
-  // Convert calendarEvents -> flat reminders list
   const out = [];
   for (const key in calendarEvents) {
-    const events = calendarEvents[key] || [];
-    for (const ev of events) {
-      out.push({
-        title: ev.text,
-        sub: formatReminderDate(key),
-        _dateKey: key,
-        _id: ev.id
-      });
+    for (const ev of (calendarEvents[key] || [])) {
+      out.push({ title: ev.text, sub: formatReminderDate(key), _dateKey: key, _id: ev.id });
     }
   }
-
-  // sort by date (soonest first), then text
   out.sort((a, b) => a._dateKey.localeCompare(b._dateKey) || a.title.localeCompare(b.title));
   return out;
 }
 
 /* =========================
-   Reminders (base + calendar)
+   Reminders
    ========================= */
 function renderReminders(filterText = "") {
   const list = $("reminderList");
   if (!list) return;
 
   list.innerHTML = "";
-
   const q = filterText.trim().toLowerCase();
 
   const combined = [
@@ -279,23 +223,20 @@ function renderReminders(filterText = "") {
     const item = document.createElement("div");
     item.className = "reminder";
 
-    // Buttons only for calendar reminders
-    const actions =
-      r._type === "calendar"
-        ? `
-          <div style="display:flex; gap:8px; margin-top:10px;">
-            <button class="btn btn-ghost small" data-action="edit" data-id="${r._id}">✏️ Edit</button>
-            <button class="btn btn-ghost small" data-action="delete" data-id="${r._id}">🗑️ Delete</button>
-          </div>
-        `
-        : "";
+    const actions = r._type === "calendar"
+      ? `
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn btn-ghost small" data-action="edit" data-id="${r._id}" type="button">✏️ Edit</button>
+          <button class="btn btn-ghost small" data-action="delete" data-id="${r._id}" type="button">🗑️ Delete</button>
+        </div>
+      `
+      : "";
 
     item.innerHTML = `
       <div class="rem-title">🔔 ${safeText(r.title)}</div>
       <div class="rem-sub">${safeText(r.sub)}</div>
       ${actions}
     `;
-
     list.appendChild(item);
   });
 
@@ -308,13 +249,12 @@ function renderReminders(filterText = "") {
     list.appendChild(empty);
   }
 
-  // One event listener for all reminder buttons (event delegation)
+  // event delegation
   list.querySelectorAll("button[data-action]").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", () => {
       const action = btn.getAttribute("data-action");
       const id = btn.getAttribute("data-id");
       if (!id) return;
-
       if (action === "edit") editCalendarEvent(id);
       if (action === "delete") deleteCalendarEvent(id);
     });
@@ -322,31 +262,15 @@ function renderReminders(filterText = "") {
 }
 
 /* =========================
-   Calendar (month UI)
+   Calendar UI
    ========================= */
-let viewDate = new Date();      // month being displayed
-let selectedDate = new Date();  // selected day
+let viewDate = new Date();
+let selectedDate = new Date();
 
-function startOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-// Monday-first index: Mon=0 ... Sun=6
-function mondayFirstIndex(jsDay) {
-  // JS: Sun=0..Sat=6
-  return (jsDay + 6) % 7;
-}
-
-function sameDay(a, b) {
-  return a.getFullYear() === b.getFullYear()
-    && a.getMonth() === b.getMonth()
-    && a.getDate() === b.getDate();
-}
-
-function dayHasEvents(d) {
-  const key = dateKey(d);
-  return (calendarEvents[key] && calendarEvents[key].length > 0);
-}
+function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function mondayFirstIndex(jsDay) { return (jsDay + 6) % 7; }
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function dayHasEvents(d) { return !!(calendarEvents[dateKey(d)] && calendarEvents[dateKey(d)].length); }
 
 function renderCalendar() {
   const title = $("calTitle");
@@ -354,13 +278,10 @@ function renderCalendar() {
   if (!title || !grid) return;
 
   grid.innerHTML = "";
-
-  const monthName = viewDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-  title.textContent = monthName;
+  title.textContent = viewDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
   const first = startOfMonth(viewDate);
-
-  const firstIndex = mondayFirstIndex(first.getDay()); // 0-6
+  const firstIndex = mondayFirstIndex(first.getDay());
   const totalCells = 42;
 
   const gridStart = new Date(first);
@@ -376,25 +297,14 @@ function renderCalendar() {
     cell.className = "day";
     cell.textContent = d.getDate();
 
-    const isCurrentMonth = d.getMonth() === viewDate.getMonth();
-    if (!isCurrentMonth) cell.classList.add("muted");
-
+    if (d.getMonth() !== viewDate.getMonth()) cell.classList.add("muted");
     if (sameDay(d, today)) cell.classList.add("today");
     if (sameDay(d, selectedDate)) cell.classList.add("selected");
-
-    // Color the day if it has events (NO DOT)
     if (dayHasEvents(d)) cell.classList.add("has-event");
-
-    // If selected day has events, "selected" should visually win (optional)
-    // If you want selected to override has-event, keep CSS ordering accordingly.
 
     cell.addEventListener("click", () => {
       selectedDate = d;
-
-      if (d.getMonth() !== viewDate.getMonth()) {
-        viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
-      }
-
+      if (d.getMonth() !== viewDate.getMonth()) viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
       renderCalendar();
     });
 
@@ -419,7 +329,7 @@ function wireCalendarControls() {
 }
 
 /* =========================
-   Add / Edit / Delete calendar events
+   Add / Edit / Delete events
    ========================= */
 function addCalendarEvent() {
   const input = $("eventInput");
@@ -429,14 +339,12 @@ function addCalendarEvent() {
   if (!text) return;
 
   const key = dateKey(selectedDate);
-  if (!calendarEvents[key]) calendarEvents[key] = [];
-
+  calendarEvents[key] ??= [];
   calendarEvents[key].push({ id: uid(), text });
 
   saveCalendarEvents();
   input.value = "";
 
-  // refresh UI
   renderCalendar();
   renderReminders(getSearchQuery());
 }
@@ -445,9 +353,7 @@ function findEventById(eventId) {
   for (const key in calendarEvents) {
     const arr = calendarEvents[key] || [];
     const index = arr.findIndex(ev => ev.id === eventId);
-    if (index !== -1) {
-      return { key, index, event: arr[index] };
-    }
+    if (index !== -1) return { key, index, event: arr[index] };
   }
   return null;
 }
@@ -456,15 +362,13 @@ function editCalendarEvent(eventId) {
   const found = findEventById(eventId);
   if (!found) return;
 
-  const current = found.event.text;
-  const nextText = prompt("Edit reminder text:", current);
+  const nextText = prompt("Edit reminder text:", found.event.text);
+  if (nextText === null) return;
 
-  if (nextText === null) return; // user cancelled
   const clean = nextText.trim();
   if (!clean) return;
 
   calendarEvents[found.key][found.index].text = clean;
-
   saveCalendarEvents();
   renderCalendar();
   renderReminders(getSearchQuery());
@@ -474,15 +378,10 @@ function deleteCalendarEvent(eventId) {
   const found = findEventById(eventId);
   if (!found) return;
 
-  const ok = confirm("Delete this reminder?");
-  if (!ok) return;
+  if (!confirm("Delete this reminder?")) return;
 
   calendarEvents[found.key].splice(found.index, 1);
-
-  // If day becomes empty, remove the key (clean storage)
-  if (calendarEvents[found.key].length === 0) {
-    delete calendarEvents[found.key];
-  }
+  if (calendarEvents[found.key].length === 0) delete calendarEvents[found.key];
 
   saveCalendarEvents();
   renderCalendar();
@@ -490,7 +389,7 @@ function deleteCalendarEvent(eventId) {
 }
 
 /* =========================
-   Sidebar active state
+   Sidebar + Search
    ========================= */
 function wireSidebar() {
   const items = document.querySelectorAll(".nav-item");
@@ -502,9 +401,6 @@ function wireSidebar() {
   });
 }
 
-/* =========================
-   Search (filters classes + lessons + reminders)
-   ========================= */
 function wireSearch() {
   const input = $("searchInput");
   if (!input) return;
@@ -532,16 +428,11 @@ function init() {
 
   renderCalendar();
 
-  const addBtn = $("addEventBtn");
-  if (addBtn) addBtn.addEventListener("click", addCalendarEvent);
+  $("addEventBtn")?.addEventListener("click", addCalendarEvent);
 
-  // Press Enter to add event
-  const eventInput = $("eventInput");
-  if (eventInput) {
-    eventInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") addCalendarEvent();
-    });
-  }
+  $("eventInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addCalendarEvent();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);

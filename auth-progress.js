@@ -1,6 +1,5 @@
-// auth-progress.js (ES MODULE)
+// auth-progress.js (SIMPLE AUTH ONLY) — ES MODULE
 
-// --- Imports (ONLY ONCE) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
@@ -10,30 +9,20 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-// --- Firebase config ---
+// ✅ Paste your config EXACTLY from Firebase Console (CDN)
 const firebaseConfig = {
   apiKey: "AIzaSyAM12PNCQr0ige1GS3iIkxIjNbmY94gcAg",
   authDomain: "projektvecka.firebaseapp.com",
   projectId: "projektvecka",
   storageBucket: "projektvecka.firebasestorage.app",
   messagingSenderId: "86535425017",
-  appId: "1:86535425017:web:69c21f947c328708574b28",
-  measurementId: "G-HC2ES20GZP"
+  appId: "1:86535425017:web:69c21f947c328708574b28"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
-// --- UI elements ---
+// ---- UI elements ----
 const modal = document.getElementById("profileModal");
 const openBtn = document.getElementById("openProfile");
 const closeBtn = document.getElementById("closeProfile");
@@ -53,9 +42,9 @@ const userEmailEl = document.getElementById("authUserEmail");
 
 const profileName = document.getElementById("profileName");
 const profileRole = document.getElementById("profileRole");
-const welcomeName = document.getElementById("welcomeName"); // add id in HTML if you want
+const welcomeName = document.getElementById("welcomeName");
 
-// --- Modal open/close ---
+// ---- Modal open/close ----
 function openModal() {
   modal?.classList.remove("hidden");
   if (msgEl) msgEl.textContent = "";
@@ -71,7 +60,7 @@ modal?.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
 
-// --- Auth buttons ---
+// ---- Auth buttons ----
 btnSignup?.addEventListener("click", async () => {
   if (!emailEl || !passEl) return;
   if (msgEl) msgEl.textContent = "";
@@ -79,7 +68,7 @@ btnSignup?.addEventListener("click", async () => {
     await createUserWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
     if (msgEl) msgEl.textContent = "Account created ✅";
   } catch (e) {
-    if (msgEl) msgEl.textContent = e?.message || "Signup failed";
+    if (msgEl) msgEl.textContent = e?.code || e?.message || "Signup failed";
   }
 });
 
@@ -90,7 +79,7 @@ btnLogin?.addEventListener("click", async () => {
     await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
     if (msgEl) msgEl.textContent = "Logged in ✅";
   } catch (e) {
-    if (msgEl) msgEl.textContent = e?.message || "Login failed";
+    if (msgEl) msgEl.textContent = e?.code || e?.message || "Login failed";
   }
 });
 
@@ -98,89 +87,21 @@ btnLogout?.addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// --- Firestore progress helpers ---
-function progressDocRef(uid) {
-  return doc(db, "users", uid, "progress", "main");
-}
-
-async function loadProgress(uid) {
-  const snap = await getDoc(progressDocRef(uid));
-  return snap.exists() ? snap.data() : { quizzes: {} };
-}
-
-async function saveProgress(uid, progress) {
-  await setDoc(
-    progressDocRef(uid),
-    { ...progress, updatedAt: serverTimestamp() },
-    { merge: true }
-  );
-}
-
-// --- Public progress API ---
-window.StudyProgress = {
-  currentUser: null,
-  progress: { quizzes: {} },
-
-  async markOpened(quizId) {
-    if (!this.currentUser) return;
-    this.progress.quizzes ??= {};
-    this.progress.quizzes[quizId] ??= {};
-    this.progress.quizzes[quizId].opened = true;
-    this.progress.quizzes[quizId].updatedAt = Date.now();
-    await saveProgress(this.currentUser.uid, { quizzes: this.progress.quizzes });
-  },
-
-  async saveAnswers(quizId, answersObj) {
-    if (!this.currentUser) return;
-    this.progress.quizzes ??= {};
-    this.progress.quizzes[quizId] ??= {};
-    this.progress.quizzes[quizId].opened = true;
-    this.progress.quizzes[quizId].answers = answersObj;
-    this.progress.quizzes[quizId].updatedAt = Date.now();
-    await saveProgress(this.currentUser.uid, { quizzes: this.progress.quizzes });
-  },
-
-  async markCompleted(quizId, scoreNumber = null) {
-    if (!this.currentUser) return;
-    this.progress.quizzes ??= {};
-    this.progress.quizzes[quizId] ??= {};
-    this.progress.quizzes[quizId].opened = true;
-    this.progress.quizzes[quizId].completed = true;
-    if (typeof scoreNumber === "number") this.progress.quizzes[quizId].lastScore = scoreNumber;
-    this.progress.quizzes[quizId].updatedAt = Date.now();
-    await saveProgress(this.currentUser.uid, { quizzes: this.progress.quizzes });
-  }
-};
-
-// --- Optional UI marking ---
-function updateQuizCardsUI(progress) {
-  const quizzes = progress?.quizzes || {};
-  document.querySelectorAll("[data-quiz-id]").forEach((el) => {
-    const id = el.getAttribute("data-quiz-id");
-    const q = quizzes[id];
-    el.classList.remove("quiz-opened", "quiz-done");
-    if (q?.completed) el.classList.add("quiz-done");
-    else if (q?.opened) el.classList.add("quiz-opened");
-  });
-}
-
-// --- Auth state ---
-onAuthStateChanged(auth, async (user) => {
-  window.StudyProgress.currentUser = user;
-
+// ---- Auth state ----
+onAuthStateChanged(auth, (user) => {
   if (user) {
     authLoggedOut?.classList.add("hidden");
     authLoggedIn?.classList.remove("hidden");
 
     userEmailEl && (userEmailEl.textContent = user.email || "(no email)");
-    const niceName = user.displayName || (user.email ? user.email.split("@")[0] : "Student");
+    const niceName = user.email ? user.email.split("@")[0] : "Student";
+
     profileName && (profileName.textContent = niceName);
     profileRole && (profileRole.textContent = "Student (Logged in)");
     welcomeName && (welcomeName.textContent = niceName);
 
-    const data = await loadProgress(user.uid);
-    window.StudyProgress.progress = data;
-    updateQuizCardsUI(data);
+    // optional: close modal after login
+    modal?.classList.add("hidden");
   } else {
     authLoggedIn?.classList.add("hidden");
     authLoggedOut?.classList.remove("hidden");
@@ -188,8 +109,5 @@ onAuthStateChanged(auth, async (user) => {
     profileName && (profileName.textContent = "*your name");
     profileRole && (profileRole.textContent = "Student");
     welcomeName && (welcomeName.textContent = "*YOUR NAME");
-
-    window.StudyProgress.progress = { quizzes: {} };
-    updateQuizCardsUI({ quizzes: {} });
   }
 });
