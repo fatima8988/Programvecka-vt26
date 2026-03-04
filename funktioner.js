@@ -78,8 +78,8 @@ function renderClasses(filterText = "") {
     card.innerHTML = `
       <div class="title">${safeText(c.title)}</div>
       <div class="class-meta">
-        <div class="meta-item">📄 <span>${c.files} Filer</span></div>
-        <div class="meta-item">🎬 <span>${c.lessons} Lektioner</span></div>
+      <div class="meta-item">📄 <span>${c.filer} Filer</span></div>
+      <div class="meta-item">🎬 <span>${c.lektioner} Lektioner</span></div>
       </div>
       <div class="teacher">${safeText(c.teacher)}</div>
     `;
