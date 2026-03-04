@@ -1,41 +1,66 @@
-// auth-progress.js (GOOGLE LOGIN ONLY) — ES MODULE
-// Paste this entire file and replace firebaseConfig
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
 /* ---------------------------
-   1) Firebase config
-   (Firebase Console → Project settings → Your apps → Web app)
+   "Globals" that other scripts may rely on
 ---------------------------- */
- const firebaseConfig = {
-    apiKey: "AIzaSyBeuQ9TQ8FVTd6LfxhBpcoeOC5azlzffIw",
-    authDomain: "vt26-ecb6e.firebaseapp.com",
-    projectId: "vt26-ecb6e",
-    storageBucket: "vt26-ecb6e.firebasestorage.app",
-    messagingSenderId: "936209099054",
-    appId: "1:936209099054:web:9e445447125f455c1fb2bf",
-    measurementId: "G-SX8LP24F3J"
-  };
+window.StudyProgress = window.StudyProgress || {
+  currentUser: null,          // { email, uid } or null
+  progress: { quizzes: {} }
+};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+window.StudyData = window.StudyData || {
+  async syncCalendarNow() {
+    // no-op: exists so funktioner.js can call it without crashing
+    return;
+  }
+};
 
 /* ---------------------------
-   2) Keep globals (so other JS won't break)
+   LocalStorage keys
 ---------------------------- */
-window.StudyProgress = window.StudyProgress || { currentUser: null, progress: { quizzes: {} } };
-window.StudyData = window.StudyData || { async syncCalendarNow() { /* no-op */ } };
+const USERS_KEY = "ps_users_v1";      // { "email": { pass: "...", createdAt: ... } }
+const SESSION_KEY = "ps_session_v1";  // { email: "..." }
 
 /* ---------------------------
-   3) UI elements
+   Helpers
+---------------------------- */
+function loadUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+function setSession(email) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ email }));
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+function getSessionEmail() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    const s = raw ? JSON.parse(raw) : null;
+    return s?.email || null;
+  } catch {
+    return null;
+  }
+}
+function simpleUidFromEmail(email) {
+  // stable "uid" so other code can use it
+  const str = String(email || "").toLowerCase().trim();
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return "uid_" + h.toString(16);
+}
+function setMsg(text = "") {
+  if (msgEl) msgEl.textContent = text;
+}
+
+/* ---------------------------
+   UI elements (same ids as your HTML)
 ---------------------------- */
 const modal = document.getElementById("profileModal");
 const openBtn = document.getElementById("openProfile");
@@ -44,6 +69,13 @@ const closeBtn = document.getElementById("closeProfile");
 const authLoggedOut = document.getElementById("authLoggedOut");
 const authLoggedIn = document.getElementById("authLoggedIn");
 
+const emailEl = document.getElementById("authEmail");
+const passEl = document.getElementById("authPass");
+
+const btnLogin = document.getElementById("btnLogin");
+const btnSignup = document.getElementById("btnSignup");
+const btnLogout = document.getElementById("btnLogout");
+
 const msgEl = document.getElementById("authMsg");
 const userEmailEl = document.getElementById("authUserEmail");
 
@@ -51,23 +83,16 @@ const profileName = document.getElementById("profileName");
 const profileRole = document.getElementById("profileRole");
 const welcomeName = document.getElementById("welcomeName");
 
-// You must have this button in HTML:
-const btnGoogle = document.getElementById("btnGoogle");
-
-// You already have this in your HTML:
-const btnLogout = document.getElementById("btnLogout");
-
 /* ---------------------------
-   4) Modal open/close
+   Modal open/close
 ---------------------------- */
 function openModal() {
   modal?.classList.remove("hidden");
-  if (msgEl) msgEl.textContent = "";
+  setMsg("");
 }
-
 function closeModal() {
   modal?.classList.add("hidden");
-  if (msgEl) msgEl.textContent = "";
+  setMsg("");
 }
 
 openBtn?.addEventListener("click", openModal);
@@ -76,77 +101,84 @@ modal?.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeModal();
-});
-
 /* ---------------------------
-   5) Google login/logout
+   State -> UI
 ---------------------------- */
-btnGoogle?.addEventListener("click", async () => {
-  if (msgEl) msgEl.textContent = "";
-  try {
-    // Optional: force account chooser every time
-    provider.setCustomParameters({ prompt: "select_account" });
+function applyAuthState(user) {
+  window.StudyProgress.currentUser = user;
 
-    await signInWithPopup(auth, provider);
-    if (msgEl) msgEl.textContent = "Logged in with Google ✅";
+  // let other scripts react if they want
+  window.dispatchEvent(new CustomEvent("authChanged", { detail: { user } }));
+
+  if (user) {
+    authLoggedOut?.classList.add("hidden");
+    authLoggedIn?.classList.remove("hidden");
+
+    userEmailEl && (userEmailEl.textContent = user.email);
+
+    const niceName = user.email.split("@")[0];
+    profileName && (profileName.textContent = niceName);
+    profileRole && (profileRole.textContent = "Student (Logged in)");
+    welcomeName && (welcomeName.textContent = niceName);
+
     modal?.classList.add("hidden");
-  } catch (e) {
-    if (msgEl) msgEl.textContent = e?.code || e?.message || "Google login failed";
+  } else {
+    authLoggedIn?.classList.add("hidden");
+    authLoggedOut?.classList.remove("hidden");
+
+    profileName && (profileName.textContent = "*your name");
+    profileRole && (profileRole.textContent = "Student");
+    welcomeName && (welcomeName.textContent = "*YOUR NAME");
   }
+}
+
+/* ---------------------------
+   Signup / Login / Logout (LOCAL ONLY)
+---------------------------- */
+btnSignup?.addEventListener("click", () => {
+  const email = emailEl?.value?.trim().toLowerCase();
+  const pass = passEl?.value ?? "";
+
+  if (!email || !pass) return setMsg("Fill in email + password");
+
+  const users = loadUsers();
+  if (users[email]) return setMsg("User already exists. Log in instead.");
+
+  users[email] = { pass, createdAt: Date.now() };
+  saveUsers(users);
+
+  setMsg("Account created ✅ (local)");
 });
 
-btnLogout?.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-  } catch (e) {
-    // optional
-    console.error(e);
-  }
+btnLogin?.addEventListener("click", () => {
+  const email = emailEl?.value?.trim().toLowerCase();
+  const pass = passEl?.value ?? "";
+
+  if (!email || !pass) return setMsg("Fill in email + password");
+
+  const users = loadUsers();
+  if (!users[email]) return setMsg("No account found. Click Sign up.");
+
+  if (users[email].pass !== pass) return setMsg("Wrong password ❌");
+
+  setSession(email);
+  applyAuthState({ email, uid: simpleUidFromEmail(email) });
+  setMsg("Logged in ✅");
+});
+
+btnLogout?.addEventListener("click", () => {
+  clearSession();
+  applyAuthState(null);
 });
 
 /* ---------------------------
-   6) Auth state → update UI
+   Init: restore session
 ---------------------------- */
-function setLoggedInUI(user) {
-  authLoggedOut?.classList.add("hidden");
-  authLoggedIn?.classList.remove("hidden");
-
-  const niceName =
-    user.displayName ||
-    (user.email ? user.email.split("@")[0] : "Student");
-
-  if (userEmailEl) userEmailEl.textContent = user.email || "(no email)";
-  if (profileName) profileName.textContent = niceName;
-  if (profileRole) profileRole.textContent = "Student (Logged in)";
-  if (welcomeName) welcomeName.textContent = niceName;
-}
-
-function setLoggedOutUI() {
-  authLoggedIn?.classList.add("hidden");
-  authLoggedOut?.classList.remove("hidden");
-
-  if (profileName) profileName.textContent = "*your name";
-  if (profileRole) profileRole.textContent = "Student";
-  if (welcomeName) welcomeName.textContent = "*YOUR NAME";
-}
-
-onAuthStateChanged(auth, (user) => {
-  // store lightweight user info for other scripts
-  window.StudyProgress.currentUser = user
-    ? {
-        uid: user.uid,
-        email: user.email || "",
-        name: user.displayName || ""
-      }
-    : null;
-
-  // notify other scripts if they listen to auth changes
-  window.dispatchEvent(
-    new CustomEvent("authChanged", { detail: { user: window.StudyProgress.currentUser } })
-  );
-
-  if (user) setLoggedInUI(user);
-  else setLoggedOutUI();
-});
+(function initAuth() {
+  const email = getSessionEmail();
+  if (email) {
+    applyAuthState({ email, uid: simpleUidFromEmail(email) });
+  } else {
+    applyAuthState(null);
+  }
+})();
