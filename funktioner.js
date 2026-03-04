@@ -467,49 +467,15 @@ document.addEventListener("DOMContentLoaded", init);
   openBtn.addEventListener("click", openMenu);
   overlay.addEventListener("click", closeMenu);
 
-  // stäng med ESC
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeMenu();
   });
 
-  // stäng när man klickar på en nav-länk
   sidebar.addEventListener("click", (e) => {
     const link = e.target.closest("a.nav-item");
     if (link) closeMenu();
   });
 })();
-  // Create overlay if missing
-  let overlay = document.getElementById("mobileOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "mobileOverlay";
-    overlay.className = "mobile-overlay";
-    document.body.appendChild(overlay);
-  }
-
-  function openMenu() {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeMenu() {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-    document.body.style.overflow = "";
-  }
-
-  openBtn.addEventListener("click", openMenu);
-  overlay.addEventListener("click", closeMenu);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMenu();
-  });
-
-  sidebar.addEventListener("click", (e) => {
-    const link = e.target.closest("a.nav-item");
-    if (link) closeMenu();
-  });
 
   // Stäng med ESC
   document.addEventListener("keydown", (e) => {
