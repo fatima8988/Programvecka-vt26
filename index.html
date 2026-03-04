@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -97,7 +97,7 @@
 
         <div class="table card">
           <div class="table-head">
-            <div>klass</div>
+            <div>Klass</div>
             <div>Lärarens namn</div>
             <div>Medlemmar</div>
             <div>Börjar</div>
@@ -126,7 +126,7 @@
         </div>
 
         <div class="calendar-form">
-          <input id="eventInput" type="text" placeholder="Add reminder..." />
+          <input id="eventInput" type="text" placeholder="Lägg till påminnelse..." />
           <button id="addEventBtn" type="button">Lägg till</button>
         </div>
 
@@ -138,7 +138,7 @@
 
       <div class="reminders card">
         <div class="section-head tight">
-          <h3> Påminnelser</h3>
+          <h3>Påminnelser</h3>
           <button class="btn btn-ghost small" type="button">Visa</button>
         </div>
         <div class="reminder-list" id="reminderList"></div>
@@ -168,7 +168,6 @@
 
       <div id="authLoggedOut">
 
-        <!-- GOOGLE LOGIN BUTTON (added) -->
         <button id="btnGoogle" class="btn btn-primary" type="button" style="width:100%;">
           Fortsätt med Google
         </button>
@@ -177,15 +176,15 @@
         <div style="text-align:center;opacity:.6;">Eller</div>
         <div style="height:12px;"></div>
 
-        <label>Email</label>
-        <input id="authEmail" type="email" placeholder="you@example.com" />
+        <label>E-post</label>
+        <input id="authEmail" type="email" placeholder="du@exempel.se" />
 
-        <label> Lösenord</label>
+        <label>Lösenord</label>
         <input id="authPass" type="password" placeholder="••••••••" />
 
         <div class="auth-actions">
           <button id="btnLogin" class="btn small" type="button">Logga in</button>
-          <button id="btnSignup" class="btn btn-ghost small" type="button">Sign up</button>
+          <button id="btnSignup" class="btn btn-ghost small" type="button">Skapa konto</button>
         </div>
 
         <p id="authMsg" class="auth-msg"></p>

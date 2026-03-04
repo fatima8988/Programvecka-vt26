@@ -29,15 +29,15 @@ const classes = [
 ];
 
 const lessons = [
-  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Download", payment: "Klart" },
-  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pågående" },
-  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Klart" }
+  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Ladda ner", payment: "Klart" },
+  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Ladda ner", payment: "Pågående" },
+  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Ladda ner", payment: "Klart" }
 ];
 
 const baseReminders = [
-  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Fredag" },
-  { title: "Eng. - Essay", sub: "12 Dec 2022, Fredag" },
-  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Fredag" }
+  { title: "Eng. - Glosförhör", sub: "12 Dec 2022, Fredag" },
+  { title: "Eng. - Uppsats", sub: "12 Dec 2022, Fredag" },
+  { title: "Eng. - Muntlig lektion", sub: "12 Dec 2022, Fredag" }
 ];
 
 /* ---------- Helpers ---------- */
@@ -78,8 +78,8 @@ function renderClasses(filterText = "") {
     card.innerHTML = `
       <div class="title">${safeText(c.title)}</div>
       <div class="class-meta">
-        <div class="meta-item">📄 <span>${c.files} Files</span></div>
-        <div class="meta-item">🎬 <span>${c.lessons} Lessons</span></div>
+        <div class="meta-item">📄 <span>${c.files} Filer</span></div>
+        <div class="meta-item">🎬 <span>${c.lessons} Lektioner</span></div>
       </div>
       <div class="teacher">${safeText(c.teacher)}</div>
     `;
@@ -226,8 +226,8 @@ function renderReminders(filterText = "") {
     const actions = r._type === "calendar"
       ? `
         <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="btn btn-ghost small" data-action="edit" data-id="${r._id}" type="button">✏️ Edit</button>
-          <button class="btn btn-ghost small" data-action="delete" data-id="${r._id}" type="button">🗑️ Delete</button>
+          <button class="btn btn-ghost small" data-action="edit" data-id="${r._id}" type="button">✏️ Ändra</button>
+          <button class="btn btn-ghost small" data-action="delete" data-id="${r._id}" type="button">🗑️ Ta bort</button>
         </div>
       `
       : "";
@@ -245,7 +245,7 @@ function renderReminders(filterText = "") {
     empty.className = "reminder";
     empty.style.color = "#657195";
     empty.style.fontWeight = "800";
-    empty.textContent = "No reminders found.";
+    empty.textContent = "Inga påminnelser hittades.";
     list.appendChild(empty);
   }
 
@@ -362,7 +362,7 @@ function editCalendarEvent(eventId) {
   const found = findEventById(eventId);
   if (!found) return;
 
-  const nextText = prompt("Edit reminder text:", found.event.text);
+  const nextText = prompt("Ändra texten på påminnelsen:", found.event.text);
   if (nextText === null) return;
 
   const clean = nextText.trim();
@@ -378,7 +378,7 @@ function deleteCalendarEvent(eventId) {
   const found = findEventById(eventId);
   if (!found) return;
 
-  if (!confirm("Delete this reminder?")) return;
+  if (!confirm("Ta bort den här påminnelsen?")) return;
 
   calendarEvents[found.key].splice(found.index, 1);
   if (calendarEvents[found.key].length === 0) delete calendarEvents[found.key];

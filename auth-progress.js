@@ -118,7 +118,7 @@ function applyAuthState(user) {
 
     const niceName = user.email.split("@")[0];
     profileName && (profileName.textContent = niceName);
-    profileRole && (profileRole.textContent = "Elev (Loggad in lokalt)");
+    profileRole && (profileRole.textContent = "Elev (inloggad lokalt)");
     welcomeName && (welcomeName.textContent = niceName);
 
     modal?.classList.add("hidden");
@@ -139,25 +139,25 @@ btnSignup?.addEventListener("click", () => {
   const email = emailEl?.value?.trim().toLowerCase();
   const pass = passEl?.value ?? "";
 
-  if (!email || !pass) return setMsg("Fyll i email + lösenord");
+  if (!email || !pass) return setMsg("Fyll i e-post + lösenord");
 
   const users = loadUsers();
-  if (users[email]) return setMsg("Användare finns redan. Logga in istället.");
+  if (users[email]) return setMsg("Användaren finns redan. Logga in istället.");
 
   users[email] = { pass, createdAt: Date.now() };
   saveUsers(users);
 
-  setMsg("Account created ✅ (local)");
+  setMsg("Konto skapat ✅ (lokalt)");
 });
 
 btnLogin?.addEventListener("click", () => {
   const email = emailEl?.value?.trim().toLowerCase();
   const pass = passEl?.value ?? "";
 
-  if (!email || !pass) return setMsg("Fyll i email + lösenord");
+  if (!email || !pass) return setMsg("Fyll i e-post + lösenord");
 
   const users = loadUsers();
-  if (!users[email]) return setMsg("Inget konto hittat. Klicka på Registrera.");
+  if (!users[email]) return setMsg("Inget konto hittat. Skapa konto istället.");
 
   if (users[email].pass !== pass) return setMsg("Fel lösenord ❌");
 

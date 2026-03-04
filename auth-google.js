@@ -13,14 +13,14 @@ import {
 
 /* ✅ PASTE YOUR CONFIG HERE */
 const firebaseConfig = {
-    apiKey: "AIzaSyAeL0PHa89X84UODVcSiLN4xVunb6LrnSc",
-    authDomain: "projektveckan.firebaseapp.com",
-    projectId: "projektveckan",
-    storageBucket: "projektveckan.firebasestorage.app",
-    messagingSenderId: "492002042687",
-    appId: "1:492002042687:web:c51dce741d0c7cade8e98a",
-    measurementId: "G-FRGZJTBWLZ"
-  };
+  apiKey: "AIzaSyAeL0PHa89X84UODVcSiLN4xVunb6LrnSc",
+  authDomain: "projektveckan.firebaseapp.com",
+  projectId: "projektveckan",
+  storageBucket: "projektveckan.firebasestorage.app",
+  messagingSenderId: "492002042687",
+  appId: "1:492002042687:web:c51dce741d0c7cade8e98a",
+  measurementId: "G-FRGZJTBWLZ"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -80,7 +80,7 @@ function setUserUI(user) {
   authLoggedOut?.classList.add("hidden");
   authLoggedIn?.classList.remove("hidden");
 
-  const display = user.displayName || (user.email ? user.email.split("@")[0] : "User");
+  const display = user.displayName || (user.email ? user.email.split("@")[0] : "Användare");
 
   if (authUserEmail) authUserEmail.textContent = user.email || display;
   if (profileName) profileName.textContent = display;
@@ -95,7 +95,7 @@ btnGoogle?.addEventListener("click", async () => {
     closeModal();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Google login failed", true);
+    setMsg(err?.message || "Google-inloggning misslyckades", true);
   }
 });
 
@@ -109,7 +109,7 @@ btnLogin?.addEventListener("click", async () => {
     closeModal();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Login failed", true);
+    setMsg(err?.message || "Inloggning misslyckades", true);
   }
 });
 
@@ -122,7 +122,7 @@ btnSignup?.addEventListener("click", async () => {
     closeModal();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Signup failed", true);
+    setMsg(err?.message || "Kunde inte skapa konto", true);
   }
 });
 
@@ -133,7 +133,7 @@ btnLogout?.addEventListener("click", async () => {
     closeModal();
   } catch (err) {
     console.error(err);
-    setMsg(err?.message || "Logout failed", true);
+    setMsg(err?.message || "Utloggning misslyckades", true);
   }
 });
 
