@@ -667,3 +667,70 @@ a{color:inherit}
     gap:12px;
   }
 }
+
+/* ===== Mobile menu (OFF-CANVAS) — CLEAN VERSION ===== */
+
+/* overlay som mörkar bakgrunden */
+.mobile-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  z-index: 9998;
+}
+.mobile-overlay.show{ display:block; }
+
+/* göm hamburgare på desktop */
+.menu-btn{ display:none; }
+
+@media (max-width: 1100px){
+  /* Behåll din layout men visa gärna right-panel på mobil senare i 760px */
+  .app{ grid-template-columns: 240px 1fr; }
+  .right{ display:none; }
+  .class-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px){
+  /* Gör layouten enkel på mobil */
+  .app{
+    display:block;        /* viktigt: inte flex här, annars kan det bli konstigt */
+    padding: 12px;
+  }
+
+  /* Visa hamburgaren */
+  .menu-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* Sidebar som slide-in (override din gamla display:none) */
+  .sidebar{
+    display:flex !important;
+    position:fixed;
+    top:12px;
+    left:12px;
+    bottom:12px;
+    width:min(320px, 88vw);
+    z-index:9999;
+
+    transform: translateX(-115%);
+    transition: transform .22s ease;
+    overflow:auto;
+  }
+  .sidebar.open{ transform: translateX(0); }
+
+  /* Visa right-panel igen på mobil (staplas under main) */
+  .right{
+    display:flex !important;
+    flex-direction:column;
+    gap:12px;
+    margin-top: 12px;
+  }
+
+  /* Topbar blir tight */
+  .topbar{ gap: 10px; flex-wrap: wrap; }
+  .date-chip{ width: 100%; text-align:center; }
+
+  /* Din gamla “responsive table” får vara kvar */
+}

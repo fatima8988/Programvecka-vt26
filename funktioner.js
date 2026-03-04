@@ -477,7 +477,7 @@ function wireMobileMenu() {
     const hit = e.target.closest(".nav-item, a.nav-item, button.nav-item");
     if (hit) closeMenu();
   });
-}
+
 
 /* =========================
    Init
