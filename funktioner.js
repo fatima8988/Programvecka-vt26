@@ -510,7 +510,6 @@ document.addEventListener("DOMContentLoaded", init);
     const link = e.target.closest("a.nav-item");
     if (link) closeMenu();
   });
-})();
 
   // Stäng med ESC
   document.addEventListener("keydown", (e) => {
