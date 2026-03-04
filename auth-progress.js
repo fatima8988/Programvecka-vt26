@@ -118,7 +118,7 @@ function applyAuthState(user) {
 
     const niceName = user.email.split("@")[0];
     profileName && (profileName.textContent = niceName);
-    profileRole && (profileRole.textContent = "Student (Logged in)");
+    profileRole && (profileRole.textContent = "Elev (Loggad in lokalt)");
     welcomeName && (welcomeName.textContent = niceName);
 
     modal?.classList.add("hidden");
@@ -126,9 +126,9 @@ function applyAuthState(user) {
     authLoggedIn?.classList.add("hidden");
     authLoggedOut?.classList.remove("hidden");
 
-    profileName && (profileName.textContent = "*your name");
-    profileRole && (profileRole.textContent = "Student");
-    welcomeName && (welcomeName.textContent = "*YOUR NAME");
+    profileName && (profileName.textContent = "*ditt namn");
+    profileRole && (profileRole.textContent = "Elev");
+    welcomeName && (welcomeName.textContent = "*DITT NAMN");
   }
 }
 
@@ -139,10 +139,10 @@ btnSignup?.addEventListener("click", () => {
   const email = emailEl?.value?.trim().toLowerCase();
   const pass = passEl?.value ?? "";
 
-  if (!email || !pass) return setMsg("Fill in email + password");
+  if (!email || !pass) return setMsg("Fyll i email + lösenord");
 
   const users = loadUsers();
-  if (users[email]) return setMsg("User already exists. Log in instead.");
+  if (users[email]) return setMsg("Användare finns redan. Logga in istället.");
 
   users[email] = { pass, createdAt: Date.now() };
   saveUsers(users);
@@ -154,16 +154,16 @@ btnLogin?.addEventListener("click", () => {
   const email = emailEl?.value?.trim().toLowerCase();
   const pass = passEl?.value ?? "";
 
-  if (!email || !pass) return setMsg("Fill in email + password");
+  if (!email || !pass) return setMsg("Fyll i email + lösenord");
 
   const users = loadUsers();
-  if (!users[email]) return setMsg("No account found. Click Sign up.");
+  if (!users[email]) return setMsg("Inget konto hittat. Klicka på Registrera.");
 
-  if (users[email].pass !== pass) return setMsg("Wrong password ❌");
+  if (users[email].pass !== pass) return setMsg("Fel lösenord ❌");
 
   setSession(email);
   applyAuthState({ email, uid: simpleUidFromEmail(email) });
-  setMsg("Logged in ✅");
+  setMsg("Loggad in ✅");
 });
 
 btnLogout?.addEventListener("click", () => {

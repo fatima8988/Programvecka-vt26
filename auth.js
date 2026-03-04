@@ -28,7 +28,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 loginBtn.onclick = () => {
   signInWithPopup(auth, provider)
     .then((result) => {
-      console.log("Logged in:", result.user);
+      console.log("Loggad in:", result.user);
     })
     .catch((error) => {
       console.error(error);
@@ -43,7 +43,7 @@ if (logoutBtn) {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("User logged in:", user.displayName);
+    console.log("Användaren är inloggad:", user.displayName);
     loginBtn.innerText = user.displayName;
   } else {
     loginBtn.innerText = "Login";

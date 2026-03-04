@@ -7,22 +7,22 @@
 const classes = [
   {
     title: "Religion - Abrahamitiska religioner",
-    files: 10,
-    lessons: 10,
+    filer: 10,
+    lektioner: 10,
     teacher: "Lärare: Aleyna Baser",
     gradient: "linear-gradient(135deg, #4f7cff, #7a96ff)"
   },
   {
     title: "Fysik - Kap 9",
-    files: 12,
-    lessons: 12,
+    filer: 12,
+    lektioner: 12,
     teacher: "Lärare: Marco Antonio Rosas Tello",
     gradient: "linear-gradient(135deg, #3d6be6, #52b7ff)"
   },
   {
     title: "Webbutveckling - slutprojekt",
-    files: 16,
-    lessons: 16,
+    filer: 16,
+    lektioner: 16,
     teacher: "Lärare: Saimon Lindblad",
     gradient: "linear-gradient(135deg, #ff7aa7, #ffb29b)"
   }
