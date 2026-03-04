@@ -550,3 +550,61 @@ a{color:inherit}
 }
 .auth-card label{ font-size:13px; font-weight:700; }
 .hidden{ display:none; }
+/* ===== Mobile navigation (off-canvas sidebar) ===== */
+.menu-btn { display: none; }
+
+.mobile-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  z-index: 9998;
+}
+
+/* OBS: du har redan @media (max-width: 760px) men där gömmer du sidebar.
+   Vi ersätter det beteendet med en slide-in meny. */
+@media (max-width: 760px){
+
+  /* Gör layouten mer “mobil-stacked” */
+  .app{
+    display:flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* Visa menyknappen i topbar */
+  .menu-btn{ display:inline-flex; align-items:center; justify-content:center; }
+
+  /* Sidebar blir en slide-in panel istället för display:none */
+  .sidebar{
+    display:flex !important;             /* override din display:none */
+    position:fixed;
+    top: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: min(300px, 86vw);
+    z-index: 9999;
+    transform: translateX(-115%);
+    transition: transform .22s ease;
+    overflow:auto;
+  }
+
+  .sidebar.open{
+    transform: translateX(0);
+  }
+
+  .mobile-overlay.show{ display:block; }
+
+  /* Visa högerpanelen igen på mobil (du gömmer den vid <1100px) */
+  .right{
+    display:flex !important;             /* override display:none i 1100px-regeln */
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Din lessons “table” blir redan 2 kolumner på mobil (bra!) */
+  /* Du kan också göra topbar lite tightare */
+  .topbar{ gap: 10px; flex-wrap: wrap; }
+  .date-chip{ width: 100%; text-align:center; }
+}

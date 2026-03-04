@@ -436,3 +436,37 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+// ===== Mobile sidebar toggle =====
+(function mobileMenu() {
+  const sidebar = document.querySelector(".sidebar");
+  const openBtn = document.getElementById("openMenu");
+  const overlay = document.getElementById("mobileOverlay");
+
+  if (!sidebar || !openBtn || !overlay) return;
+
+  function openMenu() {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMenu() {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+
+  openBtn.addEventListener("click", openMenu);
+  overlay.addEventListener("click", closeMenu);
+
+  // Stäng med ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
+
+  // Bonus: stäng när man klickar på en nav-länk i sidebaren (t.ex. Quiz)
+  sidebar.addEventListener("click", (e) => {
+    const link = e.target.closest("a.nav-item");
+    if (link) closeMenu();
+  });
+})();
