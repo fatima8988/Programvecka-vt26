@@ -149,6 +149,13 @@ function renderLessons(filterText = "") {
    ========================= */
 let calendarEvents = loadCalendarEvents();
 
+window.addEventListener("calendarEventsLoaded", () => {
+  // safe: if something triggers this, we reload from localStorage
+  calendarEvents = loadCalendarEvents();
+  renderCalendar();
+  renderReminders(getSearchQuery());
+});
+
 function loadCalendarEvents() {
   const raw = localStorage.getItem("calendarEvents");
   if (!raw) return {};
@@ -242,6 +249,7 @@ function renderReminders(filterText = "") {
     list.appendChild(empty);
   }
 
+  // event delegation
   list.querySelectorAll("button[data-action]").forEach(btn => {
     btn.addEventListener("click", () => {
       const action = btn.getAttribute("data-action");
@@ -405,44 +413,35 @@ function wireSearch() {
   });
 }
 
-// ===== Mobile sidebar toggle (stable) =====
-function wireMobileMenu() {
-  const sidebar = document.querySelector(".sidebar");
-  const openBtn = document.getElementById("openMenu");
-  const overlay = document.getElementById("mobileOverlay");
+/* =========================
+   Init
+   ========================= */
+function init() {
+  renderTodayChip();
+  renderClasses();
+  renderLessons();
+  renderReminders();
 
-  if (!sidebar || !openBtn || !overlay) return;
+  wireSidebar();
+  wireSearch();
+  wireCalendarControls();
 
-  function openMenu() {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-    document.body.style.overflow = "hidden";
-  }
+  renderCalendar();
 
-  function closeMenu() {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-    document.body.style.overflow = "";
-  }
+  $("addEventBtn")?.addEventListener("click", addCalendarEvent);
 
-  function toggleMenu() {
-    if (sidebar.classList.contains("open")) closeMenu();
-    else openMenu();
-  }
-
-  openBtn.addEventListener("click", toggleMenu);
-  overlay.addEventListener("click", closeMenu);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMenu();
-  });
-
-  // Stäng när man klickar på en nav-item
-  sidebar.addEventListener("click", (e) => {
-    const hit = e.target.closest(".nav-item");
-    if (hit) closeMenu();
+  $("eventInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addCalendarEvent();
   });
 }
+
+document.addEventListener("DOMContentLoaded", init);
+// ===== Mobile sidebar toggle (robust) =====
+(function mobileMenu() {
+  const sidebar = document.querySelector(".sidebar");
+  const openBtn = document.getElementById("openMenu");
+
+  if (!sidebar || !openBtn) return;
 
   // Create overlay if missing
   let overlay = document.getElementById("mobileOverlay");
@@ -472,33 +471,19 @@ function wireMobileMenu() {
     if (e.key === "Escape") closeMenu();
   });
 
-  // Close when clicking a nav item (works for buttons or links)
   sidebar.addEventListener("click", (e) => {
-    const hit = e.target.closest(".nav-item, a.nav-item, button.nav-item");
-    if (hit) closeMenu();
+    const link = e.target.closest("a.nav-item");
+    if (link) closeMenu();
+  });
+})();
+
+  // Stäng med ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
   });
 
-
-/* =========================
-   Init
-   ========================= */
-function init() {
-  renderTodayChip();
-  renderClasses();
-  renderLessons();
-  renderReminders();
-
-  wireSidebar();
-  wireSearch();
-  wireCalendarControls();
-  wireMobileMenu();
-
-  renderCalendar();
-
-  $("addEventBtn")?.addEventListener("click", addCalendarEvent);
-  $("eventInput")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") addCalendarEvent();
+  // Bonus: stäng när man klickar på en nav-länk i sidebaren (t.ex. Quiz)
+  sidebar.addEventListener("click", (e) => {
+    const link = e.target.closest("a.nav-item");
+    if (link) closeMenu();
   });
-}
-
-document.addEventListener("DOMContentLoaded", init);
