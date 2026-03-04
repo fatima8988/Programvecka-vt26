@@ -9,35 +9,35 @@ const classes = [
     title: "Religion - Abrahamitiska religioner",
     files: 10,
     lessons: 10,
-    teacher: "Teacher: Aleyna Baser",
+    teacher: "Lärare: Aleyna Baser",
     gradient: "linear-gradient(135deg, #4f7cff, #7a96ff)"
   },
   {
     title: "Fysik - Kap 9",
     files: 12,
     lessons: 12,
-    teacher: "Teacher: Marco Antonio Rosas Tello",
+    teacher: "Lärare: Marco Antonio Rosas Tello",
     gradient: "linear-gradient(135deg, #3d6be6, #52b7ff)"
   },
   {
     title: "Webbutveckling - slutprojekt",
     files: 16,
     lessons: 16,
-    teacher: "Teacher: Saimon Lindblad",
+    teacher: "Lärare: Saimon Lindblad",
     gradient: "linear-gradient(135deg, #ff7aa7, #ffb29b)"
   }
 ];
 
 const lessons = [
-  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Download", payment: "Done" },
-  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pending" },
-  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Done" }
+  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Download", payment: "Klart" },
+  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Download", payment: "Pågående" },
+  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Download", payment: "Klart" }
 ];
 
 const baseReminders = [
-  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Friday" },
-  { title: "Eng. - Essay", sub: "12 Dec 2022, Friday" },
-  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Friday" }
+  { title: "Eng. - Vocabulary test", sub: "12 Dec 2022, Fredag" },
+  { title: "Eng. - Essay", sub: "12 Dec 2022, Fredag" },
+  { title: "Eng. - Speaking Class", sub: "12 Dec 2022, Fredag" }
 ];
 
 /* ---------- Helpers ---------- */
@@ -91,7 +91,7 @@ function renderClasses(filterText = "") {
     empty.className = "card";
     empty.style.padding = "14px";
     empty.style.color = "#657195";
-    empty.textContent = "No classes match your search.";
+    empty.textContent = "Inga klasser matchar din sökning.";
     grid.appendChild(empty);
   }
 }
@@ -139,7 +139,7 @@ function renderLessons(filterText = "") {
     const empty = document.createElement("div");
     empty.className = "row";
     empty.style.gridTemplateColumns = "1fr";
-    empty.innerHTML = `<div style="color:#657195;font-weight:800;">No lessons match your search.</div>`;
+    empty.innerHTML = `<div style="color:#657195;font-weight:800;">Inga lektioner matchar din sökning.</div>`;
     wrap.appendChild(empty);
   }
 }

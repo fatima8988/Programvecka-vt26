@@ -72,8 +72,8 @@ function setUserUI(user) {
     authLoggedIn?.classList.add("hidden");
     authLoggedOut?.classList.remove("hidden");
 
-    if (profileName) profileName.textContent = "*your name";
-    if (welcomeName) welcomeName.textContent = "*YOUR NAME";
+    if (profileName) profileName.textContent = "*ditt namn";
+    if (welcomeName) welcomeName.textContent = "*DITT NAMN";
     return;
   }
 
