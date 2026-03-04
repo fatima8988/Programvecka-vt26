@@ -436,13 +436,21 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-// ===== Mobile sidebar toggle =====
+// ===== Mobile sidebar toggle (robust) =====
 (function mobileMenu() {
   const sidebar = document.querySelector(".sidebar");
   const openBtn = document.getElementById("openMenu");
-  const overlay = document.getElementById("mobileOverlay");
 
-  if (!sidebar || !openBtn || !overlay) return;
+  if (!sidebar || !openBtn) return;
+
+  // Create overlay if missing
+  let overlay = document.getElementById("mobileOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "mobileOverlay";
+    overlay.className = "mobile-overlay";
+    document.body.appendChild(overlay);
+  }
 
   function openMenu() {
     sidebar.classList.add("open");
@@ -458,6 +466,16 @@ document.addEventListener("DOMContentLoaded", init);
 
   openBtn.addEventListener("click", openMenu);
   overlay.addEventListener("click", closeMenu);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
+
+  sidebar.addEventListener("click", (e) => {
+    const link = e.target.closest("a.nav-item");
+    if (link) closeMenu();
+  });
+})();
 
   // Stäng med ESC
   document.addEventListener("keydown", (e) => {
