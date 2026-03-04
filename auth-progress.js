@@ -1,28 +1,69 @@
-// auth-progress.js (SIMPLE AUTH ONLY) — ES MODULE
+// auth-progress.js (NO FIREBASE) — keeps the same globals so other scripts don't break
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-// ✅ Paste your config EXACTLY from Firebase Console (CDN)
-const firebaseConfig = {
-  apiKey: "AIzaSyAM12PNCQr0ige1GS3iIkxIjNbmY94gcAg",
-  authDomain: "projektvecka.firebaseapp.com",
-  projectId: "projektvecka",
-  storageBucket: "projektvecka.firebasestorage.app",
-  messagingSenderId: "86535425017",
-  appId: "1:86535425017:web:69c21f947c328708574b28"
+/* ---------------------------
+   "Globals" that other scripts may rely on
+---------------------------- */
+window.StudyProgress = window.StudyProgress || {
+  currentUser: null,          // { email, uid } or null
+  progress: { quizzes: {} }
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+window.StudyData = window.StudyData || {
+  async syncCalendarNow() {
+    // no-op: exists so funktioner.js can call it without crashing
+    return;
+  }
+};
 
-// ---- UI elements ----
+/* ---------------------------
+   LocalStorage keys
+---------------------------- */
+const USERS_KEY = "ps_users_v1";      // { "email": { pass: "...", createdAt: ... } }
+const SESSION_KEY = "ps_session_v1";  // { email: "..." }
+
+/* ---------------------------
+   Helpers
+---------------------------- */
+function loadUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+function setSession(email) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ email }));
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+function getSessionEmail() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    const s = raw ? JSON.parse(raw) : null;
+    return s?.email || null;
+  } catch {
+    return null;
+  }
+}
+function simpleUidFromEmail(email) {
+  // stable "uid" so other code can use it
+  const str = String(email || "").toLowerCase().trim();
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return "uid_" + h.toString(16);
+}
+function setMsg(text = "") {
+  if (msgEl) msgEl.textContent = text;
+}
+
+/* ---------------------------
+   UI elements (same ids as your HTML)
+---------------------------- */
 const modal = document.getElementById("profileModal");
 const openBtn = document.getElementById("openProfile");
 const closeBtn = document.getElementById("closeProfile");
@@ -44,14 +85,16 @@ const profileName = document.getElementById("profileName");
 const profileRole = document.getElementById("profileRole");
 const welcomeName = document.getElementById("welcomeName");
 
-// ---- Modal open/close ----
+/* ---------------------------
+   Modal open/close
+---------------------------- */
 function openModal() {
   modal?.classList.remove("hidden");
-  if (msgEl) msgEl.textContent = "";
+  setMsg("");
 }
 function closeModal() {
   modal?.classList.add("hidden");
-  if (msgEl) msgEl.textContent = "";
+  setMsg("");
 }
 
 openBtn?.addEventListener("click", openModal);
@@ -60,47 +103,26 @@ modal?.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
 
-// ---- Auth buttons ----
-btnSignup?.addEventListener("click", async () => {
-  if (!emailEl || !passEl) return;
-  if (msgEl) msgEl.textContent = "";
-  try {
-    await createUserWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-    if (msgEl) msgEl.textContent = "Account created ✅";
-  } catch (e) {
-    if (msgEl) msgEl.textContent = e?.code || e?.message || "Signup failed";
-  }
-});
+/* ---------------------------
+   State -> UI
+---------------------------- */
+function applyAuthState(user) {
+  window.StudyProgress.currentUser = user;
 
-btnLogin?.addEventListener("click", async () => {
-  if (!emailEl || !passEl) return;
-  if (msgEl) msgEl.textContent = "";
-  try {
-    await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-    if (msgEl) msgEl.textContent = "Logged in ✅";
-  } catch (e) {
-    if (msgEl) msgEl.textContent = e?.code || e?.message || "Login failed";
-  }
-});
+  // let other scripts react if they want
+  window.dispatchEvent(new CustomEvent("authChanged", { detail: { user } }));
 
-btnLogout?.addEventListener("click", async () => {
-  await signOut(auth);
-});
-
-// ---- Auth state ----
-onAuthStateChanged(auth, (user) => {
   if (user) {
     authLoggedOut?.classList.add("hidden");
     authLoggedIn?.classList.remove("hidden");
 
-    userEmailEl && (userEmailEl.textContent = user.email || "(no email)");
-    const niceName = user.email ? user.email.split("@")[0] : "Student";
+    userEmailEl && (userEmailEl.textContent = user.email);
 
+    const niceName = user.email.split("@")[0];
     profileName && (profileName.textContent = niceName);
     profileRole && (profileRole.textContent = "Student (Logged in)");
     welcomeName && (welcomeName.textContent = niceName);
 
-    // optional: close modal after login
     modal?.classList.add("hidden");
   } else {
     authLoggedIn?.classList.add("hidden");
@@ -110,4 +132,55 @@ onAuthStateChanged(auth, (user) => {
     profileRole && (profileRole.textContent = "Student");
     welcomeName && (welcomeName.textContent = "*YOUR NAME");
   }
+}
+
+/* ---------------------------
+   Signup / Login / Logout (LOCAL ONLY)
+---------------------------- */
+btnSignup?.addEventListener("click", () => {
+  const email = emailEl?.value?.trim().toLowerCase();
+  const pass = passEl?.value ?? "";
+
+  if (!email || !pass) return setMsg("Fill in email + password");
+
+  const users = loadUsers();
+  if (users[email]) return setMsg("User already exists. Log in instead.");
+
+  users[email] = { pass, createdAt: Date.now() };
+  saveUsers(users);
+
+  setMsg("Account created ✅ (local)");
 });
+
+btnLogin?.addEventListener("click", () => {
+  const email = emailEl?.value?.trim().toLowerCase();
+  const pass = passEl?.value ?? "";
+
+  if (!email || !pass) return setMsg("Fill in email + password");
+
+  const users = loadUsers();
+  if (!users[email]) return setMsg("No account found. Click Sign up.");
+
+  if (users[email].pass !== pass) return setMsg("Wrong password ❌");
+
+  setSession(email);
+  applyAuthState({ email, uid: simpleUidFromEmail(email) });
+  setMsg("Logged in ✅");
+});
+
+btnLogout?.addEventListener("click", () => {
+  clearSession();
+  applyAuthState(null);
+});
+
+/* ---------------------------
+   Init: restore session
+---------------------------- */
+(function initAuth() {
+  const email = getSessionEmail();
+  if (email) {
+    applyAuthState({ email, uid: simpleUidFromEmail(email) });
+  } else {
+    applyAuthState(null);
+  }
+})();
