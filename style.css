@@ -608,3 +608,62 @@ a{color:inherit}
   .topbar{ gap: 10px; flex-wrap: wrap; }
   .date-chip{ width: 100%; text-align:center; }
 }
+/* ===== Mobile off-canvas sidebar ===== */
+.menu-btn { display: none; }
+
+.mobile-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  z-index: 9998;
+}
+
+.mobile-overlay.show{
+  display:block;
+}
+
+/* MOBIL */
+@media (max-width: 760px){
+
+  /* visa hamburgaren */
+  .menu-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* Sidebar ska INTE vara display:none på mobil */
+  .sidebar{
+    display:flex !important;            /* <-- detta är nyckeln */
+    position:fixed;
+    top:12px;
+    left:12px;
+    bottom:12px;
+    width:min(320px, 88vw);
+    z-index:9999;
+
+    transform: translateX(-115%);
+    transition: transform .22s ease;
+    overflow:auto;
+  }
+
+  .sidebar.open{
+    transform: translateX(0);
+  }
+
+  /* Lägg content under varandra på mobil */
+  .app{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:12px;
+  }
+
+  /* (valfritt) gör att right-panel syns på mobil också */
+  .right{
+    display:flex !important;
+    flex-direction:column;
+    gap:12px;
+  }
+}
