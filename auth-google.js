@@ -1,27 +1,30 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+// auth-google.js — Google Login + keeps your modal working
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+/* ✅ PASTE YOUR CONFIG HERE */
 const firebaseConfig = {
-  apiKey: "AIzaSyBeuQ9TQ8FVTd6LfxhBpcoeOC5azlzfFIw",
-  authDomain: "vt26-ecb6e.firebaseapp.com",
-  projectId: "vt26-ecb6e",
-  storageBucket: "vt26-ecb6e.firebasestorage.app",
-  messagingSenderId: "936209099054",
-  appId: "1:936209099054:web:9e445447125f455c1fb2bf"
-};
+    apiKey: "AIzaSyAeL0PHa89X84UODVcSiLN4xVunb6LrnSc",
+    authDomain: "projektveckan.firebaseapp.com",
+    projectId: "projektveckan",
+    storageBucket: "projektveckan.firebasestorage.app",
+    messagingSenderId: "492002042687",
+    appId: "1:492002042687:web:c51dce741d0c7cade8e98a",
+    measurementId: "G-FRGZJTBWLZ"
+  };
 
-export const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
-
-// Optional but helpful:
-provider.setCustomParameters({
-  prompt: "select_account"
-});
-
-export const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 /* ---------- elements you already have ---------- */
 const profileModal  = document.getElementById("profileModal");
