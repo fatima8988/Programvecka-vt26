@@ -319,3 +319,23 @@ body{
 .brand-link:hover{
   text-decoration:none;
 }
+.home-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+
+  padding:8px 14px;
+  border-radius:12px;
+
+  background:#f3f5fb;
+  color:#1f2a44;
+  font-weight:700;
+
+  text-decoration:none;
+  transition:all .15s ease;
+}
+
+.home-btn:hover{
+  background:#e6ebff;
+  transform:translateY(-1px);
+}
