@@ -297,6 +297,15 @@ body{
   .search{ min-width: 160px; }
 }
 
+/* Gör "Study Tools" länken att se ut som vanlig text */
+.brand .nav-item a.nav-item{
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand .nav-item a.nav-item:hover{
+  text-decoration: none;
+}
 .brand-link{
   display:flex;
   align-items:center;
