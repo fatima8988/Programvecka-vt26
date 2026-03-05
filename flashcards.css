@@ -327,7 +327,7 @@ body{
   padding:8px 14px;
   border-radius:12px;
 
-  background:#f3f5fb;
+  background:#ffffff;
   color:#1f2a44;
   font-weight:700;
 
@@ -336,7 +336,7 @@ body{
 }
 
 .home-btn:hover{
-  background:#e6ebff;
+  background:#ffffff;
   transform:translateY(-1px);
 }
 a{
