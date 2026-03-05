@@ -296,3 +296,13 @@ body{
   .grid2{ grid-template-columns: 1fr; }
   .search{ min-width: 160px; }
 }
+
+/* Gör "Study Tools" länken att se ut som vanlig text */
+.brand .nav-item a.nav-item{
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand .nav-item a.nav-item:hover{
+  text-decoration: none;
+}
