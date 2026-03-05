@@ -29,15 +29,15 @@ const classes = [
 ];
 
 const lessons = [
-  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "12.07.2022", material: "Ladda ner", payment: "Klart" },
-  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "17.07.2022", material: "Ladda ner", payment: "Pågående" },
-  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.07.2022", material: "Ladda ner", payment: "Klart" }
+  { cls: "RELREL01", teacher: "Aleyna Baser", members: 7, starting: "06.01.2026", material: "Ladda ner", payment: "Pågående" },
+  { cls: "WEUWEB02", teacher: "Saimon Lindberg", members: 8, starting: "22.08.2025", material: "Ladda ner", payment: "Pågående" },
+  { cls: "FYSFYS02", teacher: "Marco Antonio Rosas Tello", members: 6, starting: "22.08.2025", material: "Ladda ner", payment: "Pågående" }
 ];
 
 const baseReminders = [
-  { title: "Eng. - Glosförhör", sub: "12 Dec 2022, Fredag" },
-  { title: "Eng. - Uppsats", sub: "12 Dec 2022, Fredag" },
-  { title: "Eng. - Muntlig lektion", sub: "12 Dec 2022, Fredag" }
+  { title: "Eng. - Glosförhör", sub: "6 Jan 2026, Fredag" },
+  { title: "Eng. - Uppsats", sub: "22 AUG 2026, Fredag" },
+  { title: "Eng. - Muntlig lektion", sub: "22 AUG 2026, Fredag" }
 ];
 
 /* ---------- Helpers ---------- */
