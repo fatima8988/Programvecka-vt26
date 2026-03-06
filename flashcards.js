@@ -3,13 +3,13 @@
    flashcards.js
    ========================= */
 
-const QA_STORAGE_KEY = "studyQA_v1";
+const QA_STORAGE_KEY = "studyQA_v1"; // same key across pages if you want
 
 // State
-let qaItems = loadQA();
-let filteredIds = [];
-let quizOrder = [];
-let flashDeck = [];
+let qaItems = loadQA();              
+let filteredIds = [];                
+let quizOrder = [];                  
+let flashDeck = [];                  
 let flashIndex = 0;
 let flashFlipped = false;
 
@@ -75,7 +75,7 @@ function wireTabs() {
   });
 }
 
-// ---------- Search ----------
+// ---------- Global search ----------
 function applySearch() {
   const q = ($("globalSearch")?.value || "").trim().toLowerCase();
 
@@ -107,7 +107,7 @@ function updateBuilderMeta() {
   const shown = filteredIds.length || total;
   const learned = qaItems.filter(x => x.learned).length;
 
-  el.textContent = `Totalt: ${total} • Visas: ${shown} • Lärda: ${learned}`;
+  el.textContent = `Totalt: ${total} • Visas: ${shown} • Inlärda: ${learned}`;
 }
 
 function renderQAList() {
@@ -120,7 +120,7 @@ function renderQAList() {
   const items = qaItems.filter(x => idSet.has(x.id));
 
   if (items.length === 0) {
-    list.innerHTML = `<div class="item"><div class="a">Inga frågor matchar sökningen 🙂</div></div>`;
+    list.innerHTML = `<div class="item"><div class="a">Inga frågor matchar sökningen. 🙂</div></div>`;
     return;
   }
 
@@ -133,9 +133,9 @@ function renderQAList() {
       el.innerHTML = `
         <div class="item-top">
           <div style="flex:1;">
-            <div class="q">Fråga: ${escapeHtml(item.q)}</div>
-            <div class="a">Svar: ${escapeHtml(item.a)}</div>
-            <div class="a" style="margin-top:8px;">Status: <b>${item.learned ? "Lärd ✓" : "Ej lärd"}</b></div>
+            <div class="q">F: ${escapeHtml(item.q)}</div>
+            <div class="a">S: ${escapeHtml(item.a)}</div>
+            <div class="a" style="margin-top:8px;">Status: <b>${item.learned ? "Inlärd ✓" : "Ej inlärd"}</b></div>
           </div>
           <div class="item-actions">
             <button class="btn btn-ghost small" data-action="toggle" data-id="${item.id}">${item.learned ? "↩︎" : "✓"}</button>
@@ -152,6 +152,7 @@ function renderQAList() {
     btn.addEventListener("click", () => {
       const action = btn.dataset.action;
       const id = btn.dataset.id;
+      if (!id) return;
 
       if (action === "delete") deleteQA(id);
       if (action === "edit") editQA(id);
@@ -163,6 +164,7 @@ function renderQAList() {
 function addQA() {
   const qEl = $("qInput");
   const aEl = $("aInput");
+  if (!qEl || !aEl) return;
 
   const q = qEl.value.trim();
   const a = aEl.value.trim();
@@ -183,7 +185,7 @@ function addQA() {
 }
 
 function clearAllQA() {
-  const ok = confirm("Vill du radera ALLA frågor?");
+  const ok = confirm("Vill du rensa ALLA frågor?");
   if (!ok) return;
   qaItems = [];
   saveQA();
@@ -196,7 +198,6 @@ function editQA(id) {
 
   const newQ = prompt("Redigera fråga:", item.q);
   if (newQ === null) return;
-
   const newA = prompt("Redigera svar:", item.a);
   if (newA === null) return;
 
@@ -210,7 +211,6 @@ function editQA(id) {
 function deleteQA(id) {
   const ok = confirm("Ta bort denna fråga?");
   if (!ok) return;
-
   qaItems = qaItems.filter(x => x.id !== id);
   saveQA();
   applySearch();
@@ -218,6 +218,7 @@ function deleteQA(id) {
 
 function toggleLearned(id) {
   const item = qaItems.find(x => x.id === id);
+  if (!item) return;
   item.learned = !item.learned;
   saveQA();
   applySearch();
@@ -229,12 +230,55 @@ function updateQuizMeta() {
   if (!el) return;
 
   const usable = (filteredIds.length ? filteredIds : qaItems.map(x => x.id)).length;
-  el.textContent = `${usable} frågor tillgängliga för quiz`;
+  el.textContent = `${usable} frågor tillgängliga för quiz (baserat på sökning)`;
+}
+
+function normalizeAnswer(s) {
+  return String(s ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[.,!?;:()"]/g, "");
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function similarity(a, b) {
+  const dist = levenshtein(a, b);
+  const maxLen = Math.max(a.length, b.length) || 1;
+  return 1 - dist / maxLen;
+}
+
+function isCloseEnough(user, correct) {
+  const u = normalizeAnswer(user);
+  const c = normalizeAnswer(correct);
+  if (!u) return false;
+  if (u === c) return true;
+  if (u.includes(c) || c.includes(u)) return true;
+  return similarity(u, c) >= 0.72;
 }
 
 function startQuiz() {
   const wrap = $("quizWrap");
   const result = $("quizResult");
+  if (!wrap) return;
 
   wrap.innerHTML = "";
   if (result) result.style.display = "none";
@@ -251,16 +295,15 @@ function startQuiz() {
 
   quizOrder.forEach((id, idx) => {
     const item = qaItems.find(x => x.id === id);
+    if (!item) return;
 
     const qBox = document.createElement("div");
     qBox.className = "quizQ";
-
     qBox.innerHTML = `
       <div class="qtitle">${idx + 1}. ${escapeHtml(item.q)}</div>
       <input type="text" data-quiz-id="${item.id}" placeholder="Skriv ditt svar..." />
-      <div class="tip">Tips: svaret behöver bara vara ungefär rätt.</div>
+      <div class="tip">Tips: vi kollar “nästan rätt”.</div>
     `;
-
     wrap.appendChild(qBox);
   });
 }
@@ -268,18 +311,23 @@ function startQuiz() {
 function submitQuiz() {
   const wrap = $("quizWrap");
   const result = $("quizResult");
+  if (!wrap || !result) return;
 
   const inputs = wrap.querySelectorAll("input[data-quiz-id]");
+  if (inputs.length === 0) return;
+
   let correctCount = 0;
 
   inputs.forEach(inp => {
     const id = inp.getAttribute("data-quiz-id");
     const item = qaItems.find(x => x.id === id);
+    if (!item) return;
 
     const ok = isCloseEnough(inp.value, item.a);
     if (ok) correctCount++;
 
     inp.style.borderColor = ok ? "rgba(34,197,94,.6)" : "rgba(239,68,68,.55)";
+    inp.style.background = ok ? "rgba(34,197,94,.08)" : "rgba(239,68,68,.06)";
   });
 
   result.style.display = "block";
@@ -296,12 +344,17 @@ function rebuildFlashDeck() {
 
   flashDeck = final.map(x => x.id);
 
-  if (flashIndex >= flashDeck.length) flashIndex = 0;
+  if (flashIndex >= flashDeck.length) flashIndex = Math.max(0, flashDeck.length - 1);
+  if (flashDeck.length === 0) {
+    flashIndex = 0;
+    flashFlipped = false;
+  }
   updateFlashMeta();
 }
 
 function updateFlashMeta() {
   const el = $("flashMeta");
+  if (!el) return;
 
   if (flashDeck.length === 0) {
     el.textContent = "0 kort";
@@ -310,30 +363,57 @@ function updateFlashMeta() {
   }
 }
 
+function currentCard() {
+  const id = flashDeck[flashIndex];
+  return qaItems.find(x => x.id === id) || null;
+}
+
 function renderFlashcard() {
   const side = $("cardSide");
   const title = $("flashTitle");
   const body = $("flashBody");
+  if (!side || !title || !body) return;
 
   if (flashDeck.length === 0) {
     side.textContent = "Fråga";
     title.textContent = "—";
-    body.textContent = "Lägg in frågor i Frågebyggaren först 🙂";
+    body.textContent = "Lägg in frågor i Question Builder först 🙂";
+    updateFlashMeta();
     return;
   }
 
   const item = currentCard();
+  if (!item) return;
 
   side.textContent = flashFlipped ? "Svar" : "Fråga";
-  title.textContent = item.learned ? "Lärd ✓" : "Ej lärd";
+  title.textContent = item.learned ? "Inlärd ✓" : "Ej inlärd";
   body.textContent = flashFlipped ? item.a : item.q;
 
   updateFlashMeta();
 }
 
+function nextCard() {
+  if (flashDeck.length === 0) return;
+  flashIndex = (flashIndex + 1) % flashDeck.length;
+  flashFlipped = false;
+  renderFlashcard();
+}
+
+function prevCard() {
+  if (flashDeck.length === 0) return;
+  flashIndex = (flashIndex - 1 + flashDeck.length) % flashDeck.length;
+  flashFlipped = false;
+  renderFlashcard();
+}
+
+function flipCard() {
+  if (flashDeck.length === 0) return;
+  flashFlipped = !flashFlipped;
+  renderFlashcard();
+}
+
 // ---------- Init ----------
 function init() {
-
   filteredIds = qaItems.map(x => x.id);
 
   wireTabs();
