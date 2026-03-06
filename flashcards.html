@@ -3,42 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plugg Stuga — Flashcards & Quiz</title>
+  <title>Study Tools — Flashcards & Quiz</title>
   <link rel="stylesheet" href="flashcards.css" />
 </head>
 <body>
   <div class="app">
     <div class="mobile-overlay" id="mobileOverlay"></div>
-
     <header class="topbar">
-      <div class="brand">
-        <div class="logo">
-          <span class="dot dot-pink"></span>
-          <span class="dot dot-blue"></span>
-        </div>
+<div class="brand">
+  <div class="logo">
+    <span class="dot dot-pink"></span>
+    <span class="dot dot-blue"></span>
+  </div>
 
-        <a href="index.html" class="btn btn-ghost">
-          🎓 Plugg Stuga
-        </a>
+  <a href="index.html" class="btn btn-ghost">
+    🎓 Plugg Stuga
+  </a>
 
-        <div class="sub">Flashcards • Quiz • Frågebyggare</div>
-      </div>
+  <div class="sub">Flashcards • Quiz • Question Builder</div>
+</div>
 
       <div class="right-actions">
         <input id="globalSearch" class="search" type="text" placeholder="Sök i frågor..." />
-        <button class="btn btn-ghost" id="exportBtn" title="Exportera till JSON">Exportera</button>
-
+        <button class="btn btn-ghost" id="exportBtn" title="Exportera till JSON">Export</button>
         <label class="btn btn-ghost file-btn" title="Importera JSON">
-          Importera
+          Import
           <input id="importFile" type="file" accept="application/json" hidden />
         </label>
       </div>
     </header>
 
     <main class="main">
-
       <section class="tabs card">
-        <button class="tab active" data-view="builderView">Frågebyggare</button>
+        <button class="tab active" data-view="builderView">Question Builder</button>
         <button class="tab" data-view="quizView">Quiz</button>
         <button class="tab" data-view="flashView">Flashcards</button>
       </section>
@@ -46,7 +43,7 @@
       <!-- BUILDER -->
       <section id="builderView" class="card content">
         <div class="section-head">
-          <h2>Lägg till provfrågor</h2>
+          <h2>Lägg in provfrågor</h2>
           <div class="meta" id="builderMeta">—</div>
         </div>
 
@@ -55,7 +52,6 @@
             <label class="label">Fråga</label>
             <textarea id="qInput" class="textarea" rows="4" placeholder="Ex: Vad är oxidation?"></textarea>
           </div>
-
           <div>
             <label class="label">Svar</label>
             <textarea id="aInput" class="textarea" rows="4" placeholder="Ex: Oxidation är när..."></textarea>
@@ -63,8 +59,8 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-primary" id="addQA">Lägg till fråga</button>
-          <button class="btn btn-ghost" id="clearAllQA">Rensa alla</button>
+          <button class="btn btn-primary" id="addQA">Add question</button>
+          <button class="btn btn-ghost" id="clearAllQA">Clear all</button>
         </div>
 
         <div class="list" id="qaList"></div>
@@ -78,8 +74,8 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-ghost" id="startQuiz">Starta quiz</button>
-          <button class="btn btn-primary" id="submitQuiz">Skicka in</button>
+          <button class="btn btn-ghost" id="startQuiz">Start quiz</button>
+          <button class="btn btn-primary" id="submitQuiz">Submit</button>
         </div>
 
         <div id="quizWrap" class="quizWrap"></div>
@@ -94,37 +90,35 @@
         </div>
 
         <div class="flash-controls">
-          <button class="btn btn-ghost" id="prevCard">← Föregående</button>
-          <button class="btn btn-ghost" id="flipCard">Vänd</button>
-          <button class="btn btn-ghost" id="nextCard">Nästa →</button>
+          <button class="btn btn-ghost" id="prevCard">← Prev</button>
+          <button class="btn btn-ghost" id="flipCard">Flip</button>
+          <button class="btn btn-ghost" id="nextCard">Next →</button>
 
           <div class="spacer"></div>
 
-          <button class="btn btn-ghost" id="shuffleCards">Blanda</button>
-
+          <button class="btn btn-ghost" id="shuffleCards">Shuffle</button>
           <label class="check">
             <input id="onlyUnlearned" type="checkbox" />
-            Endast olärda
+            Only unlearned
           </label>
         </div>
 
         <div class="flashcard" id="flashCard" tabindex="0">
-          <div class="badge" id="cardSide">Fråga</div>
+          <div class="badge" id="cardSide">Question</div>
           <div class="title" id="flashTitle">—</div>
-          <div class="body" id="flashBody">Lägg först in frågor i Frågebyggaren 🙂</div>
+          <div class="body" id="flashBody">Lägg in frågor i Question Builder först 🙂</div>
         </div>
 
         <div class="flash-actions">
-          <button class="btn btn-primary" id="markLearned">Markera som lärd ✓</button>
-          <button class="btn btn-ghost" id="markUnlearned">Markera som olärd</button>
+          <button class="btn btn-primary" id="markLearned">Mark learned ✓</button>
+          <button class="btn btn-ghost" id="markUnlearned">Mark unlearned</button>
         </div>
       </section>
 
       <footer class="footer">
-        <div class="hint">Tips: I frågebyggaren kan du trycka <b>Ctrl/⌘ + Enter</b> i svarfältet för att lägga till snabbt.</div>
-        <div class="hint">Tips: I flashcards kan du trycka <b>Mellanslag</b> för att vända kortet.</div>
+        <div class="hint">Tips: I builder kan du trycka <b>Ctrl/⌘ + Enter</b> i svarfältet för att lägga till snabbt.</div>
+        <div class="hint">Tips: I flashcards kan du trycka <b>Space</b> för Flip.</div>
       </footer>
-
     </main>
   </div>
 
