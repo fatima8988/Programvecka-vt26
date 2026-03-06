@@ -6,10 +6,10 @@
 const QA_STORAGE_KEY = "studyQA_v1"; // same key across pages if you want
 
 // State
-let qaItems = loadQA();              
-let filteredIds = [];                
-let quizOrder = [];                  
-let flashDeck = [];                  
+let qaItems = loadQA();              // [{id,q,a,learned:boolean,createdAt:number}]
+let filteredIds = [];                // ids matching global search
+let quizOrder = [];                  // ids in current quiz
+let flashDeck = [];                  // array of ids for flashcards (filtered + optional onlyUnlearned)
 let flashIndex = 0;
 let flashFlipped = false;
 
@@ -63,6 +63,7 @@ function setView(viewId) {
     btn.classList.toggle("active", btn.dataset.view === viewId);
   });
 
+  // refresh view-specific meta
   updateBuilderMeta();
   updateQuizMeta();
   rebuildFlashDeck();
@@ -107,7 +108,7 @@ function updateBuilderMeta() {
   const shown = filteredIds.length || total;
   const learned = qaItems.filter(x => x.learned).length;
 
-  el.textContent = `Totalt: ${total} • Visas: ${shown} • Inlärda: ${learned}`;
+  el.textContent = `Total: ${total} • Shown: ${shown} • Learned: ${learned}`;
 }
 
 function renderQAList() {
@@ -133,9 +134,9 @@ function renderQAList() {
       el.innerHTML = `
         <div class="item-top">
           <div style="flex:1;">
-            <div class="q">F: ${escapeHtml(item.q)}</div>
-            <div class="a">S: ${escapeHtml(item.a)}</div>
-            <div class="a" style="margin-top:8px;">Status: <b>${item.learned ? "Inlärd ✓" : "Ej inlärd"}</b></div>
+            <div class="q">Q: ${escapeHtml(item.q)}</div>
+            <div class="a">A: ${escapeHtml(item.a)}</div>
+            <div class="a" style="margin-top:8px;">Status: <b>${item.learned ? "Learned ✓" : "Unlearned"}</b></div>
           </div>
           <div class="item-actions">
             <button class="btn btn-ghost small" data-action="toggle" data-id="${item.id}">${item.learned ? "↩︎" : "✓"}</button>
@@ -148,6 +149,7 @@ function renderQAList() {
       list.appendChild(el);
     });
 
+  // event delegation
   list.querySelectorAll("button[data-action]").forEach(btn => {
     btn.addEventListener("click", () => {
       const action = btn.dataset.action;
@@ -196,9 +198,9 @@ function editQA(id) {
   const item = qaItems.find(x => x.id === id);
   if (!item) return;
 
-  const newQ = prompt("Redigera fråga:", item.q);
+  const newQ = prompt("Edit question:", item.q);
   if (newQ === null) return;
-  const newA = prompt("Redigera svar:", item.a);
+  const newA = prompt("Edit answer:", item.a);
   if (newA === null) return;
 
   item.q = newQ.trim();
@@ -209,7 +211,7 @@ function editQA(id) {
 }
 
 function deleteQA(id) {
-  const ok = confirm("Ta bort denna fråga?");
+  const ok = confirm("Delete this question?");
   if (!ok) return;
   qaItems = qaItems.filter(x => x.id !== id);
   saveQA();
@@ -224,13 +226,23 @@ function toggleLearned(id) {
   applySearch();
 }
 
+function wireBuilder() {
+  $("addQA")?.addEventListener("click", addQA);
+  $("clearAllQA")?.addEventListener("click", clearAllQA);
+
+  // Ctrl/Cmd + Enter in answer field to add quickly
+  $("aInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) addQA();
+  });
+}
+
 // ---------- Quiz ----------
 function updateQuizMeta() {
   const el = $("quizMeta");
   if (!el) return;
 
   const usable = (filteredIds.length ? filteredIds : qaItems.map(x => x.id)).length;
-  el.textContent = `${usable} frågor tillgängliga för quiz (baserat på sökning)`;
+  el.textContent = `${usable} questions available for quiz (based on search)`;
 }
 
 function normalizeAnswer(s) {
@@ -302,7 +314,7 @@ function startQuiz() {
     qBox.innerHTML = `
       <div class="qtitle">${idx + 1}. ${escapeHtml(item.q)}</div>
       <input type="text" data-quiz-id="${item.id}" placeholder="Skriv ditt svar..." />
-      <div class="tip">Tips: vi kollar “nästan rätt”.</div>
+      <div class="tip">Tip: vi kollar “close enough”.</div>
     `;
     wrap.appendChild(qBox);
   });
@@ -331,7 +343,12 @@ function submitQuiz() {
   });
 
   result.style.display = "block";
-  result.textContent = `Resultat: ${correctCount}/${inputs.length}`;
+  result.textContent = `Score: ${correctCount}/${inputs.length}`;
+}
+
+function wireQuiz() {
+  $("startQuiz")?.addEventListener("click", startQuiz);
+  $("submitQuiz")?.addEventListener("click", submitQuiz);
 }
 
 // ---------- Flashcards ----------
@@ -357,9 +374,9 @@ function updateFlashMeta() {
   if (!el) return;
 
   if (flashDeck.length === 0) {
-    el.textContent = "0 kort";
+    el.textContent = "0 cards";
   } else {
-    el.textContent = `Kort ${flashIndex + 1} / ${flashDeck.length}`;
+    el.textContent = `Card ${flashIndex + 1} / ${flashDeck.length}`;
   }
 }
 
@@ -375,7 +392,7 @@ function renderFlashcard() {
   if (!side || !title || !body) return;
 
   if (flashDeck.length === 0) {
-    side.textContent = "Fråga";
+    side.textContent = "Question";
     title.textContent = "—";
     body.textContent = "Lägg in frågor i Question Builder först 🙂";
     updateFlashMeta();
@@ -385,8 +402,8 @@ function renderFlashcard() {
   const item = currentCard();
   if (!item) return;
 
-  side.textContent = flashFlipped ? "Svar" : "Fråga";
-  title.textContent = item.learned ? "Inlärd ✓" : "Ej inlärd";
+  side.textContent = flashFlipped ? "Answer" : "Question";
+  title.textContent = item.learned ? "Learned ✓" : "Unlearned";
   body.textContent = flashFlipped ? item.a : item.q;
 
   updateFlashMeta();
@@ -412,8 +429,124 @@ function flipCard() {
   renderFlashcard();
 }
 
+function shuffleDeck() {
+  if (flashDeck.length <= 1) return;
+  for (let i = flashDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flashDeck[i], flashDeck[j]] = [flashDeck[j], flashDeck[i]];
+  }
+  flashIndex = 0;
+  flashFlipped = false;
+  renderFlashcard();
+}
+
+function markLearned(val) {
+  const item = currentCard();
+  if (!item) return;
+  item.learned = val;
+  saveQA();
+  applySearch(); // rebuilds decks + rerenders
+}
+
+function wireFlash() {
+  $("prevCard")?.addEventListener("click", prevCard);
+  $("nextCard")?.addEventListener("click", nextCard);
+  $("flipCard")?.addEventListener("click", flipCard);
+  $("shuffleCards")?.addEventListener("click", shuffleDeck);
+
+  $("onlyUnlearned")?.addEventListener("change", () => {
+    rebuildFlashDeck();
+    flashFlipped = false;
+    renderFlashcard();
+  });
+
+  $("markLearned")?.addEventListener("click", () => markLearned(true));
+  $("markUnlearned")?.addEventListener("click", () => markLearned(false));
+
+  // Keyboard: Space flip, arrows nav
+  document.addEventListener("keydown", (e) => {
+    const flashVisible = $("flashView") && $("flashView").style.display !== "none";
+    if (!flashVisible) return;
+
+    if (e.key === " ") {
+      e.preventDefault();
+      flipCard();
+    }
+    if (e.key === "ArrowRight") nextCard();
+    if (e.key === "ArrowLeft") prevCard();
+  });
+
+  // Click on card flips
+  $("flashCard")?.addEventListener("click", flipCard);
+}
+
+// ---------- Export / Import ----------
+function exportJSON() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: qaItems
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "study-qa-export.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || "{}"));
+      const items = Array.isArray(parsed.items) ? parsed.items : [];
+
+      // merge by id (avoid duplicates)
+      const existing = new Map(qaItems.map(x => [x.id, x]));
+      items.forEach(x => {
+        const item = {
+          id: x.id || uid(),
+          q: String(x.q ?? ""),
+          a: String(x.a ?? ""),
+          learned: Boolean(x.learned),
+          createdAt: Number(x.createdAt || Date.now())
+        };
+        existing.set(item.id, item);
+      });
+
+      qaItems = Array.from(existing.values()).sort((a,b) => b.createdAt - a.createdAt);
+      saveQA();
+      applySearch();
+
+      alert("Import complete ✅");
+    } catch {
+      alert("Invalid JSON file ❌");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function wireImportExport() {
+  $("exportBtn")?.addEventListener("click", exportJSON);
+
+  $("importFile")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    importJSON(file);
+    e.target.value = "";
+  });
+}
+
 // ---------- Init ----------
 function init() {
+  // initial filter = all
   filteredIds = qaItems.map(x => x.id);
 
   wireTabs();
